@@ -1,0 +1,16 @@
+base_url = "https://eodus.github.io/blog"
+title = "Sasha Shlemov"
+description = "Math, code, AI compression."
+default_language = "en"
+output_dir = "public"
+compile_sass = true
+generate_feeds = true
+feed_filenames = ["atom.xml"]
+build_search_index = false
+
+[markdown]
+highlight_code = true
+highlight_theme = "base16-ocean-dark"
+
+[extra]
+author = "Sasha Shlemov"
