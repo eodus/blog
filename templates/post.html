@@ -1,9 +1,36 @@
 {% extends "base.html" %}
 {% block title %}{{ page.title }}{% endblock %}
+{% block content_class %}post-shell{% endblock %}
 {% block content %}
-<article>
-  <h1>{{ page.title }}</h1>
-  <span class="post-date">{{ page.date }}</span>
-  <div class="post-content">{{ page.content | safe }}</div>
-</article>
+<div class="post-layout">
+  <article>
+    <h1>{{ page.title }}</h1>
+    <span class="post-date">{{ page.date }}</span>
+    {% if page.toc %}
+    <details class="toc-mobile">
+      <summary>Contents</summary>
+      <ul>
+      {% for h in page.toc %}
+        <li><a href="{{ h.permalink | safe }}">{{ h.title }}</a>
+          {% if h.children %}<ul>{% for child in h.children %}<li><a href="{{ child.permalink | safe }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+    <div class="post-content">{{ page.content | safe }}</div>
+  </article>
+  {% if page.toc %}
+  <aside class="toc" aria-label="Table of contents">
+    <strong>Contents</strong>
+    <ul>
+    {% for h in page.toc %}
+      <li><a href="{{ h.permalink | safe }}">{{ h.title }}</a>
+        {% if h.children %}<ul>{% for child in h.children %}<li><a href="{{ child.permalink | safe }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
+</div>
 {% endblock %}
