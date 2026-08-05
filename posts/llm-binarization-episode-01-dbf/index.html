@@ -24,13 +24,14 @@
     <a href="/blog/"><strong>Sasha Shlemov</strong></a>
     <a href="/blog/posts/">Posts</a>
     <a href="https://github.com/eodus">GitHub</a>
+    <a href="https://www.linkedin.com/in/shlemovalex/">LinkedIn</a>
   </nav>
   
 <article>
   <h1>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
   <span class="post-date">2026-08-05</span>
   <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
-<a rel="external" href="https://www.linkedin.com/in/shlemovalex/">LinkedIn</a> · <a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> ·
+<a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> ·
 <a rel="external" href="https://github.com/eodus/dbf-sign1">Scripts and results</a> ·
 <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">Model</a></p>
 <p><strong>TL;DR:</strong> Structural binary quantization for llama.cpp, demonstrated on the routed experts of
@@ -44,11 +45,12 @@ afterward. The strongest method we found for this second path is <strong>Double 
 introduced by Vladimír Boža and Vladimír Macko of Comenius University Bratislava <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-dbf">[4]</a>. This series
 begins with their method and the systems work required to make it a runnable model.</p>
 <p>The merit is also two-fold.</p>
-<p><strong>First: performance.</strong> Addition is faster than multiplication. This is true even on modern general-purpose
-consumer hardware; we have measurements and present them below. It becomes significantly more important when the
-chip is designed for binary arithmetic rather than asked to emulate it through general floating-point or integer
-multipliers. Microsoft's BitNet work demonstrates both the software and hardware potential of this direction
-<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnet158">[2]</a> <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnetcpp">[3]</a>.</p>
+<p><strong>First: performance.</strong> Binary weights replace general weight multiplication with sign selection, addition, and
+popcount arithmetic. On our general-purpose consumer hardware, two binary factor products plus three diagonal
+scalers run within 1.63% in prompt processing and 0.46% in token generation of one Q2_K product. The opportunity
+becomes larger when the chip is designed for binary arithmetic rather than asked to emulate it through general
+floating-point or integer multipliers. Microsoft's BitNet work demonstrates both the software and hardware potential
+of this direction <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnet158">[2]</a> <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnetcpp">[3]</a>.</p>
 <p><strong>Second: quantization quality.</strong> DBF established that a <em>structural</em>, SVD-like binary decomposition can
 approximate LLM matrices better than leading <em>scalar</em> quantizers at the same storage budget <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-dbf">[4]</a>.
 We reproduce that result against the practical Q2_K baseline and test whether the matrix-level advantage
@@ -71,13 +73,13 @@ closes the end-to-end implementation gap.</p>
 <ol>
 <li>the <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">exact binary weights</a> used in our experiments:
 Qwen3.6-35B-A3B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen36">[5]</a> with its routed FFN experts converted to DBF at a Q2_K-scale bit budget;</li>
-<li>a converter script for checkpoints that preserve the Qwen3.6-35B-A3B tensor structure: fine-tunes,
-merged variants, and other models learned on top of the same base. Supporting dimensionally different
-members of the broader hybrid-MoE family, such as Qwen3.5-35B-A3B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-35b">[10]</a>,
-Qwen3.5-122B-A10B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-122b">[11]</a>, and Qwen3.5-397B-A17B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-397b">[12]</a>,
-should be straightforward parameterization, but we have not implemented or validated it yet;</li>
+<li>the conversion pipeline used for the tested Qwen3.6-35B-A3B checkpoint. Fine-tunes and merged variants that
+preserve its exact tensor structure should require no architectural change, but we have not validated them.
+Dimensionally different hybrid-MoE models, such as Qwen3.5-35B-A3B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-35b">[10]</a>,
+Qwen3.5-122B-A10B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-122b">[11]</a>, and Qwen3.5-397B-A17B <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-qwen35-397b">[12]</a>, require explicit
+parameterization and testing;</li>
 <li>Vulkan, CPU, and CUDA/HIP kernels integrated into our public llama.cpp branch
-<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-sign1-llama">[6]</a>. The optimized Vulkan path reaches parity with llama.cpp's Q2_K implementation
+<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-sign1-llama">[6]</a>. The optimized Vulkan path reaches near-parity with llama.cpp's Q2_K implementation
 on our hardware;</li>
 <li>benchmarks showing better model quality at approximately the same size and speed as vanilla Q2_K.</li>
 </ol>
@@ -382,12 +384,12 @@ contact us. We are happy to share the relevant artifacts and discuss what we obs
 <p>The final implementation keeps two different winners. Prompt processing (MMQ) uses bitplanes; single-token
 matrix-vector multiplication uses <code>mix()</code>. There is no reason to force one arithmetic formulation onto workloads
 with different shapes and parallelism.</p>
-<p>And addition really is faster than multiplication. DBDBD evaluates <strong>two</strong> binary matrix products plus three
-explicit diagonal scalers in approximately the time Q2_K evaluates <strong>one</strong> quantized matrix product. The
-comparison includes the complete model path, not an operation-count thought experiment. DBDBD performs more
-logical stages and still reaches end-to-end parity because its binary cores replace general weight
-multiplication with sign selection, integer addition, or popcount arithmetic. The scalers are not free; they are
-included in the measured result.</p>
+<p>The measured result is narrower and more useful than the slogan: DBDBD evaluates <strong>two</strong> binary matrix products
+plus three explicit diagonal scalers in approximately the time Q2_K evaluates <strong>one</strong> quantized matrix product.
+The comparison includes the complete model path, not an operation-count thought experiment. DBDBD performs more
+logical stages and still reaches near-parity because its binary cores replace general weight multiplication with
+sign selection, integer addition, or popcount arithmetic. The scalers are not free; they are included in the
+measured result.</p>
 <p>Performance depended as much on execution <em>regimes</em> as on arithmetic: how many rows and columns one
 workgroup owns, how many workgroups are exposed to the scheduler, which intermediates use expert-major order,
 and where conversion or scaling is fused. The retained implementation uses one-pass row encoding, SWAR
