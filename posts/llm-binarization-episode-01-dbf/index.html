@@ -35,14 +35,18 @@
 <a rel="external" href="https://github.com/eodus/dbf-sign1">Scripts and results</a> ·
 <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">Model</a></p>
 <p><strong>TL;DR:</strong> Structural binary quantization for llama.cpp, demonstrated on the routed experts of
-Qwen3.6-35B-A3B: slightly smaller than Q2_K, better model quality, and approximately the same Vulkan speed.</p>
+Qwen3.6-35B-A3B. At <code>2.555 bpe</code>, DBF/SIGN1 is slightly smaller than Q2_K, delivers near-Q3_K model quality
+(<code>3.30 bpe</code> scalar-equivalent by measured NLL interpolation), and runs within 1.63% in prompt processing and
+0.46% in token generation of Q2_K on Vulkan.</p>
 <p>Can we replace most of an LLM's weights with <code>+1</code> and <code>-1</code>, making matrix multiplication effectively
 addition? And does it have any merit?</p>
 <p>The answer is <strong>yes</strong> to both questions. For the first question, there are two approaches. We can train a model
 in a binary or ternary format from the beginning. BitNet is the best-known example
 <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnet">[1]</a> <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-bitnet158">[2]</a>. Or we can train a floating-point model first and convert it to binary
 afterward. The strongest method we found for this second path is <strong>Double Binary Factorization (DBF)</strong>,
-introduced by Vladimír Boža and Vladimír Macko of Comenius University Bratislava <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-dbf">[4]</a>. This series
+introduced by Vladimír Boža and Vladimír Macko of Comenius University Bratislava in
+<em>Addition Is Almost All You Need: Compressing Large Language Models with Double Binary Factorization</em>
+<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-dbf">[4]</a>. This series
 begins with their method and the systems work required to make it a runnable model.</p>
 <p>The merit is also two-fold.</p>
 <p><strong>First: performance.</strong> Binary weights replace general weight multiplication with sign selection, addition, and

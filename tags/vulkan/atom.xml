@@ -28,14 +28,18 @@
 &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;eodus&#x2F;dbf-sign1&quot;&gt;Scripts and results&lt;&#x2F;a&gt; ·
 &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;eodus&#x2F;Qwen3.6-35B-A3B-DBF-SIGN1&quot;&gt;Model&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; Structural binary quantization for llama.cpp, demonstrated on the routed experts of
-Qwen3.6-35B-A3B: slightly smaller than Q2_K, better model quality, and approximately the same Vulkan speed.&lt;&#x2F;p&gt;
+Qwen3.6-35B-A3B. At &lt;code&gt;2.555 bpe&lt;&#x2F;code&gt;, DBF&#x2F;SIGN1 is slightly smaller than Q2_K, delivers near-Q3_K model quality
+(&lt;code&gt;3.30 bpe&lt;&#x2F;code&gt; scalar-equivalent by measured NLL interpolation), and runs within 1.63% in prompt processing and
+0.46% in token generation of Q2_K on Vulkan.&lt;&#x2F;p&gt;
 &lt;p&gt;Can we replace most of an LLM&#x27;s weights with &lt;code&gt;+1&lt;&#x2F;code&gt; and &lt;code&gt;-1&lt;&#x2F;code&gt;, making matrix multiplication effectively
 addition? And does it have any merit?&lt;&#x2F;p&gt;
 &lt;p&gt;The answer is &lt;strong&gt;yes&lt;&#x2F;strong&gt; to both questions. For the first question, there are two approaches. We can train a model
 in a binary or ternary format from the beginning. BitNet is the best-known example
 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-bitnet&quot;&gt;[1]&lt;&#x2F;a&gt; &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-bitnet158&quot;&gt;[2]&lt;&#x2F;a&gt;. Or we can train a floating-point model first and convert it to binary
 afterward. The strongest method we found for this second path is &lt;strong&gt;Double Binary Factorization (DBF)&lt;&#x2F;strong&gt;,
-introduced by Vladimír Boža and Vladimír Macko of Comenius University Bratislava &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-dbf&quot;&gt;[4]&lt;&#x2F;a&gt;. This series
+introduced by Vladimír Boža and Vladimír Macko of Comenius University Bratislava in
+&lt;em&gt;Addition Is Almost All You Need: Compressing Large Language Models with Double Binary Factorization&lt;&#x2F;em&gt;
+&lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-dbf&quot;&gt;[4]&lt;&#x2F;a&gt;. This series
 begins with their method and the systems work required to make it a runnable model.&lt;&#x2F;p&gt;
 &lt;p&gt;The merit is also two-fold.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;First: performance.&lt;&#x2F;strong&gt; Binary weights replace general weight multiplication with sign selection, addition, and
