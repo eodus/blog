@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://eodus.github.io/blog/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/posts/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/</loc>
+        <lastmod>2026-08-05</lastmod>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/binary-models/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/llama-cpp/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/quantization/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/research/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/vulkan/</loc>
+    </url>
+</urlset>
