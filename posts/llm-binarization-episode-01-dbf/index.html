@@ -6,17 +6,48 @@
   <title>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
+    * { box-sizing: border-box; }
+    html { overflow-x: hidden; }
+    body { font-family: system-ui, sans-serif; max-width: 1120px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
     h1, h2, h3 { margin-top: 2rem; }
     a { color: #0366d6; }
-    pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; border-radius: 4px; }
+    nav { max-width: 720px; margin: 0 auto 2rem; }
+    nav a { margin-right: 1rem; }
+    .content { max-width: 720px; margin: 0 auto; }
+    .post-shell { max-width: 1080px; margin: 0 auto; }
+    .post-layout { display: grid; grid-template-columns: minmax(0, 720px) 240px; gap: 3.5rem; align-items: start; }
+    article { min-width: 0; }
+    pre { max-width: 100%; background: #f6f8fa; padding: 1rem; overflow-x: auto; border-radius: 4px; }
     code { font-size: 0.9em; }
-    table { border-collapse: collapse; width: 100%; }
+    :not(pre) > code { overflow-wrap: anywhere; }
+    table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
     th { background: #f6f8fa; }
+    th:not(:first-child), td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
     .post-date { color: #666; font-size: 0.9em; }
-    nav { margin-bottom: 2rem; }
-    nav a { margin-right: 1rem; }
+    .toc { position: sticky; top: 1.5rem; font-size: 0.84rem; line-height: 1.35; }
+    .toc strong { display: block; margin-bottom: 0.65rem; }
+    .toc ul { margin: 0; padding-left: 1rem; }
+    .toc > ul { padding-left: 0; list-style: none; }
+    .toc li { margin: 0.35rem 0; }
+    .toc a { color: #555; text-decoration: none; }
+    .toc a:hover { color: #0366d6; text-decoration: underline; }
+    .toc-mobile { display: none; }
+    @media (max-width: 980px) {
+      body { max-width: 752px; }
+      .post-layout { display: block; }
+      .toc { display: none; }
+      .toc-mobile { display: block; margin: 1.5rem 0 2rem; }
+      .toc-mobile summary { cursor: pointer; font-weight: 600; }
+      .toc-mobile ul { padding-left: 1.25rem; }
+    }
+    @media (max-width: 520px) {
+      body { margin: 1rem auto; padding: 0 1rem; }
+      nav { white-space: normal; }
+      nav a { display: inline-block; margin: 0 0.85rem 0.35rem 0; }
+      h1 { font-size: 2rem; }
+      pre { padding: 0.75rem; }
+    }
   </style>
 </head>
 <body>
@@ -26,11 +57,65 @@
     <a href="https://github.com/eodus">GitHub</a>
     <a href="https://www.linkedin.com/in/shlemovalex/">LinkedIn</a>
   </nav>
-  
-<article>
-  <h1>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
-  <span class="post-date">2026-08-05</span>
-  <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
+  <main class="post-shell">
+    
+<div class="post-layout">
+  <article>
+    <h1>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
+    <span class="post-date">2026-08-05</span>
+    
+    <details class="toc-mobile">
+      <summary>Contents</summary>
+      <ul>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-the-representation">1. The representation</a>
+          <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#8-current-measurements">8. Current measurements</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
+          <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#10-reproducibility">10. Reproducibility</a>
+          
+        </li>
+      
+        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#references">References</a>
+          
+        </li>
+      
+      </ul>
+    </details>
+    
+    <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
 <a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> ·
 <a rel="external" href="https://github.com/eodus/dbf-sign1">Scripts and results</a> ·
 <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">Model</a></p>
@@ -639,8 +724,62 @@ official model card, configuration, and open weights, 2026.</li>
 </ol>
 <p>BibTeX metadata is available in <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/episode-01-dbf.bib"><code>episode-01-dbf.bib</code></a>.</p>
 </div>
-</article>
+  </article>
+  
+  <aside class="toc" aria-label="Table of contents">
+    <strong>Contents</strong>
+    <ul>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-the-representation">1. The representation</a>
+        <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#8-current-measurements">8. Current measurements</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
+        <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#10-reproducibility">10. Reproducibility</a>
+        
+      </li>
+    
+      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#references">References</a>
+        
+      </li>
+    
+    </ul>
+  </aside>
+  
+</div>
 
+  </main>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
