@@ -424,9 +424,9 @@ persistent work partition that keeps some data local.&lt;&#x2F;li&gt;
 &lt;p&gt;These are hypotheses, not CUDA performance claims. The Vulkan implementation establishes the baseline; a native
 CUDA port has a richer synchronization model with which to challenge it.&lt;&#x2F;p&gt;
 &lt;h2 id=&quot;8-current-measurements&quot;&gt;8. Current measurements&lt;&#x2F;h2&gt;
-&lt;p&gt;The Vulkan comparison can already be reported because changing the binary signs and diagonal values does not
-change the executed shapes or operation count. The final faithful DBF weights may change perplexity; they should
-not materially change speed.&lt;&#x2F;p&gt;
+&lt;p&gt;The final Vulkan comparison uses the faithful DBF weights and the same tensor shapes, storage layout, and nominal
+operation count as the earlier runtime controls. We nevertheless reran speed with the exact release model because
+changed hidden states can alter routing and the realized workload.&lt;&#x2F;p&gt;
 &lt;p&gt;The matched Vulkan result used drift-balanced Q2_K → DBDBD → DBDBD → Q2_K order, identical non-expert
 model tensors, and the same command line:&lt;&#x2F;p&gt;
 &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Claim&lt;&#x2F;th&gt;&lt;th style=&quot;text-align: right&quot;&gt;Original FP16 experts&lt;&#x2F;th&gt;&lt;th style=&quot;text-align: right&quot;&gt;Q2_K&lt;&#x2F;th&gt;&lt;th style=&quot;text-align: right&quot;&gt;Binary result&lt;&#x2F;th&gt;&lt;th style=&quot;text-align: right&quot;&gt;Binary vs Q2_K&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
@@ -459,10 +459,9 @@ more relevant than either. Spectral error may matter especially when one narrow,
 but whether it predicts PPL better than Frobenius error remains an empirical question. Neither DBF nor our current
 reproduction optimizes it. More importantly, both unweighted metrics ignore the activation distribution.&lt;&#x2F;p&gt;
 &lt;p&gt;Each matrix is normalized by its own norm before aggregation, so large matrices or high-energy experts cannot
-silently dominate the average. We will report both the mean improvement and the number of matrices on which DBF
-wins. The final table will also identify the spectral-norm procedure: exact SVD if computationally practical, or a
-fixed-seed power iteration with its iteration count and convergence tolerance. The final model-level PPL then
-tests whether those approximation gains survive inference.&lt;&#x2F;p&gt;
+silently dominate the average. We report both the mean improvement and the number of matrices on which DBF wins.
+Spectral norms use fixed-seed 32-iteration power iteration. The full model-level PPL then tests whether those
+approximation gains survive inference.&lt;&#x2F;p&gt;
 &lt;p&gt;The current public branch also executes DBDBD at &lt;code&gt;121.49&#x2F;32.21&lt;&#x2F;code&gt; pp512&#x2F;tg128 on CPU and
 &lt;code&gt;291.77&#x2F;46.84&lt;&#x2F;code&gt; through HIP. We do not yet publish Q2_K ratios for those backends: the CPU matched control has
 not been run, while current-upstream HIP has a known Q2_K prefill regression and would provide a misleading
@@ -520,7 +519,7 @@ leaderboard.&lt;&#x2F;li&gt;
 average language modeling loss or damages a particular capability that PPL hides.&lt;&#x2F;p&gt;
 &lt;hr &#x2F;&gt;
 &lt;h2 id=&quot;10-reproducibility&quot;&gt;10. Reproducibility&lt;&#x2F;h2&gt;
-&lt;p&gt;The public release will include:&lt;&#x2F;p&gt;
+&lt;p&gt;The public release includes:&lt;&#x2F;p&gt;
 &lt;ul&gt;
 &lt;li&gt;the minimal rebased llama.cpp branch;&lt;&#x2F;li&gt;
 &lt;li&gt;build instructions for CPU, CUDA&#x2F;HIP, and Vulkan;&lt;&#x2F;li&gt;
@@ -532,9 +531,11 @@ average language modeling loss or damages a particular capability that PPL hides
 &lt;&#x2F;ul&gt;
 &lt;p&gt;The comparison keeps every non-routed-expert tensor identical, replaces the same routed expert matrices in both
 models, and accounts for their exact raw tensor payload. Quality is measured over all 580 WikiText-2 chunks using
-paired per-chunk NLL and an exact sign test, not only the aggregate perplexity. The release record will identify
-the model and code revisions used for the table and provide the exact commands. The final model artifacts establish
-the authors&#x27; fixed-dimension DBF core, our middle-diagonal reprojection, and our runtime together.&lt;&#x2F;p&gt;
+paired per-chunk NLL and an exact sign test, not only the aggregate perplexity. The release record identifies the
+model and code revisions used for the table and provides the exact commands. The GGUF SHA-256 is
+&lt;code&gt;d4fa165f0bf4752ebd86c8aa5285401b6318e48787d0912d696f05f80b8071ac&lt;&#x2F;code&gt;; the validated llama.cpp release
+commit is &lt;code&gt;753bd8614d43a03b00583c0e51a9b4fca75f9ab4&lt;&#x2F;code&gt;. These artifacts establish the authors&#x27; fixed-dimension
+DBF core, our middle-diagonal reprojection, and our runtime together.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;AI collaboration disclosure.&lt;&#x2F;strong&gt; This work was developed by Sasha Shlemov with Drinkins, his calibrated personal
 AI research and engineering assistant. Drinkins contributed implementation, experiment design, debugging, analysis,
 source research, and editing across several model engines connected through shared memory and persistent artifacts.
