@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@v2
         with:
-          tool: zola@0.19.2
+          tool: zola@0.22.1
       - run: zola build
       - uses: peaceiris/actions-gh-pages@v4
         with:
