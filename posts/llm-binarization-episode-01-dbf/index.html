@@ -245,7 +245,7 @@ would make two unrelated representations depend on each other's storage and kern
 </ul>
 <p>The GGUF therefore contains actual <code>SIGN1</code> tensors, not Q1_0 used informally and not a hidden dense
 reconstruction. The type is wired through serialization, loading, backend dispatch, and correctness tests. The
-implementation details are in the code; or, more realistically, your AI will read them =).</p>
+implementation details are in the code. More realistically, your AI will read the code for you =).</p>
 <p>This model requires our SIGN1/DBDBD llama.cpp branch; stock llama.cpp does not understand the tensor type or the
 factorized Qwen graph. Reusing Q1_0 as the sign carrier would not remove that requirement. The runtime would still
 need the custom <code>D_in -&gt; V -&gt; D_mid -&gt; U -&gt; D_out</code> graph, routed scaler handling, and architecture-specific kernel
