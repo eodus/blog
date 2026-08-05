@@ -496,9 +496,9 @@ CUDA port has a richer synchronization model with which to challenge it.
 
 ## 8. Current measurements
 
-The Vulkan comparison can already be reported because changing the binary signs and diagonal values does not
-change the executed shapes or operation count. The final faithful DBF weights may change perplexity; they should
-not materially change speed.
+The final Vulkan comparison uses the faithful DBF weights and the same tensor shapes, storage layout, and nominal
+operation count as the earlier runtime controls. We nevertheless reran speed with the exact release model because
+changed hidden states can alter routing and the realized workload.
 
 The matched Vulkan result used drift-balanced Q2_K → DBDBD → DBDBD → Q2_K order, identical non-expert
 model tensors, and the same command line:
@@ -539,10 +539,9 @@ but whether it predicts PPL better than Frobenius error remains an empirical que
 reproduction optimizes it. More importantly, both unweighted metrics ignore the activation distribution.
 
 Each matrix is normalized by its own norm before aggregation, so large matrices or high-energy experts cannot
-silently dominate the average. We will report both the mean improvement and the number of matrices on which DBF
-wins. The final table will also identify the spectral-norm procedure: exact SVD if computationally practical, or a
-fixed-seed power iteration with its iteration count and convergence tolerance. The final model-level PPL then
-tests whether those approximation gains survive inference.
+silently dominate the average. We report both the mean improvement and the number of matrices on which DBF wins.
+Spectral norms use fixed-seed 32-iteration power iteration. The full model-level PPL then tests whether those
+approximation gains survive inference.
 
 The current public branch also executes DBDBD at `121.49/32.21` pp512/tg128 on CPU and
 `291.77/46.84` through HIP. We do not yet publish Q2_K ratios for those backends: the CPU matched control has
@@ -619,7 +618,7 @@ average language modeling loss or damages a particular capability that PPL hides
 
 ## 10. Reproducibility
 
-The public release will include:
+The public release includes:
 
 - the minimal rebased llama.cpp branch;
 - build instructions for CPU, CUDA/HIP, and Vulkan;
@@ -631,9 +630,11 @@ The public release will include:
 
 The comparison keeps every non-routed-expert tensor identical, replaces the same routed expert matrices in both
 models, and accounts for their exact raw tensor payload. Quality is measured over all 580 WikiText-2 chunks using
-paired per-chunk NLL and an exact sign test, not only the aggregate perplexity. The release record will identify
-the model and code revisions used for the table and provide the exact commands. The final model artifacts establish
-the authors' fixed-dimension DBF core, our middle-diagonal reprojection, and our runtime together.
+paired per-chunk NLL and an exact sign test, not only the aggregate perplexity. The release record identifies the
+model and code revisions used for the table and provides the exact commands. The GGUF SHA-256 is
+`d4fa165f0bf4752ebd86c8aa5285401b6318e48787d0912d696f05f80b8071ac`; the validated llama.cpp release
+commit is `753bd8614d43a03b00583c0e51a9b4fca75f9ab4`. These artifacts establish the authors' fixed-dimension
+DBF core, our middle-diagonal reprojection, and our runtime together.
 
 **AI collaboration disclosure.** This work was developed by Sasha Shlemov with Drinkins, his calibrated personal
 AI research and engineering assistant. Drinkins contributed implementation, experiment design, debugging, analysis,
