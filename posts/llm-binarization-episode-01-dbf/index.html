@@ -526,16 +526,22 @@ average language modeling loss or damages a particular capability that PPL hides
 <p>Qwen3.6-35B-A3B is a practical controlled battlefield, not the final target. The next useful test is whether the
 same representation and kernel ideas survive larger expert dimensions, different routing distributions, and newer
 frontier MoE architectures.</p>
-<p>Two immediate candidates are <strong>DeepSeek-V4-Flash</strong> and <strong>GLM-5.2</strong>. DeepSeek-V4-Flash is a 284B-parameter MoE
-with 13B activated parameters, 43 layers, 256 routed experts, and one-million-token context
-<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-deepseek-v4-flash">[18]</a>. Its experts use 4096-wide hidden states and 2048-wide MoE intermediates, giving a
-materially different factorization and kernel regime from this Qwen model. GLM-5.2 has 78 layers, 6144-wide hidden
-states, 2048-wide MoE intermediates, 256 routed experts with eight selected per token, and a one-million-token
-context <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-glm52">[19]</a>. Both are open-weight, actively deployed model families for which expert storage and
-memory traffic matter substantially.</p>
+<p>The most practical next port is <strong>GLM-4.5-Air</strong>: 106B total / 12B active parameters, 46 layers, 128 routed experts,
+a 4096-wide hidden state, and 1408-wide expert intermediates <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-glm45air">[19]</a>. It fits comfortably on one
+128 GB Strix Halo after ordinary low-bit quantization, while its expert geometry and routing differ enough from
+Qwen to make the transfer meaningful.</p>
+<p>Two larger targets are <strong>MiniMax-M2.5</strong> and <strong>DeepSeek-V4-Flash</strong>. MiniMax-M2.5 is a 230B / 10B-active MoE with
+62 layers, 256 experts, 3072-wide hidden states, and 1536-wide expert intermediates <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-minimax-m25">[20]</a>.
+DeepSeek-V4-Flash is a 284B / 13B-active MoE with 43 layers, 256 routed experts, 4096-wide hidden states,
+2048-wide MoE intermediates, and one-million-token context <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-deepseek-v4-flash">[18]</a>. Both are close enough
+to the one-Halo memory boundary that a Q2-scale structural representation is operationally valuable rather than
+merely a matrix experiment.</p>
+<p>GLM-5.2 is a less practical immediate target. Its 78-layer, 6144×2048, 256-expert geometry implies hundreds of
+billions of expert parameters; even a Q2-scale expert payload alone exceeds one Halo's memory. It belongs to a
+multi-node follow-up, not the first transfer test.</p>
 <p>These are not promised ports. They are falsification targets. A representation that wins only on one convenient
-Qwen geometry is a useful kernel experiment; one that transfers across Qwen, DeepSeek, and GLM begins to look like
-a general post-training binary format.</p>
+Qwen geometry is a useful kernel experiment; one that transfers across Qwen, GLM, MiniMax, and DeepSeek begins to
+look like a general post-training binary format.</p>
 <hr />
 <h2 id="10-reproducibility">10. Reproducibility</h2>
 <p>The public release includes:</p>
@@ -620,8 +626,11 @@ EleutherAI, version 0.4.3, Zenodo, 2024, doi:10.5281/zenodo.12608602.</li>
 <li><a id="ref-deepseek-v4-flash"></a>DeepSeek-AI,
 “<a rel="external" href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash</a>,”
 official model card, configuration, and open weights, 2026.</li>
-<li><a id="ref-glm52"></a>GLM-5 Team / Z.ai,
-“<a rel="external" href="https://huggingface.co/zai-org/GLM-5.2">GLM-5.2</a>,”
+<li><a id="ref-glm45air"></a>GLM-4.5 Team / Z.ai,
+“<a rel="external" href="https://huggingface.co/zai-org/GLM-4.5-Air">GLM-4.5-Air</a>,”
+official model card, configuration, and open weights, 2025.</li>
+<li><a id="ref-minimax-m25"></a>MiniMax-AI,
+“<a rel="external" href="https://huggingface.co/MiniMaxAI/MiniMax-M2.5">MiniMax-M2.5</a>,”
 official model card, configuration, and open weights, 2026.</li>
 </ol>
 <p>BibTeX metadata is available in <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/episode-01-dbf.bib"><code>episode-01-dbf.bib</code></a>.</p>

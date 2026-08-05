@@ -519,16 +519,22 @@ average language modeling loss or damages a particular capability that PPL hides
 &lt;p&gt;Qwen3.6-35B-A3B is a practical controlled battlefield, not the final target. The next useful test is whether the
 same representation and kernel ideas survive larger expert dimensions, different routing distributions, and newer
 frontier MoE architectures.&lt;&#x2F;p&gt;
-&lt;p&gt;Two immediate candidates are &lt;strong&gt;DeepSeek-V4-Flash&lt;&#x2F;strong&gt; and &lt;strong&gt;GLM-5.2&lt;&#x2F;strong&gt;. DeepSeek-V4-Flash is a 284B-parameter MoE
-with 13B activated parameters, 43 layers, 256 routed experts, and one-million-token context
-&lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-deepseek-v4-flash&quot;&gt;[18]&lt;&#x2F;a&gt;. Its experts use 4096-wide hidden states and 2048-wide MoE intermediates, giving a
-materially different factorization and kernel regime from this Qwen model. GLM-5.2 has 78 layers, 6144-wide hidden
-states, 2048-wide MoE intermediates, 256 routed experts with eight selected per token, and a one-million-token
-context &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-glm52&quot;&gt;[19]&lt;&#x2F;a&gt;. Both are open-weight, actively deployed model families for which expert storage and
-memory traffic matter substantially.&lt;&#x2F;p&gt;
+&lt;p&gt;The most practical next port is &lt;strong&gt;GLM-4.5-Air&lt;&#x2F;strong&gt;: 106B total &#x2F; 12B active parameters, 46 layers, 128 routed experts,
+a 4096-wide hidden state, and 1408-wide expert intermediates &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-glm45air&quot;&gt;[19]&lt;&#x2F;a&gt;. It fits comfortably on one
+128 GB Strix Halo after ordinary low-bit quantization, while its expert geometry and routing differ enough from
+Qwen to make the transfer meaningful.&lt;&#x2F;p&gt;
+&lt;p&gt;Two larger targets are &lt;strong&gt;MiniMax-M2.5&lt;&#x2F;strong&gt; and &lt;strong&gt;DeepSeek-V4-Flash&lt;&#x2F;strong&gt;. MiniMax-M2.5 is a 230B &#x2F; 10B-active MoE with
+62 layers, 256 experts, 3072-wide hidden states, and 1536-wide expert intermediates &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-minimax-m25&quot;&gt;[20]&lt;&#x2F;a&gt;.
+DeepSeek-V4-Flash is a 284B &#x2F; 13B-active MoE with 43 layers, 256 routed experts, 4096-wide hidden states,
+2048-wide MoE intermediates, and one-million-token context &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;#ref-deepseek-v4-flash&quot;&gt;[18]&lt;&#x2F;a&gt;. Both are close enough
+to the one-Halo memory boundary that a Q2-scale structural representation is operationally valuable rather than
+merely a matrix experiment.&lt;&#x2F;p&gt;
+&lt;p&gt;GLM-5.2 is a less practical immediate target. Its 78-layer, 6144×2048, 256-expert geometry implies hundreds of
+billions of expert parameters; even a Q2-scale expert payload alone exceeds one Halo&#x27;s memory. It belongs to a
+multi-node follow-up, not the first transfer test.&lt;&#x2F;p&gt;
 &lt;p&gt;These are not promised ports. They are falsification targets. A representation that wins only on one convenient
-Qwen geometry is a useful kernel experiment; one that transfers across Qwen, DeepSeek, and GLM begins to look like
-a general post-training binary format.&lt;&#x2F;p&gt;
+Qwen geometry is a useful kernel experiment; one that transfers across Qwen, GLM, MiniMax, and DeepSeek begins to
+look like a general post-training binary format.&lt;&#x2F;p&gt;
 &lt;hr &#x2F;&gt;
 &lt;h2 id=&quot;10-reproducibility&quot;&gt;10. Reproducibility&lt;&#x2F;h2&gt;
 &lt;p&gt;The public release includes:&lt;&#x2F;p&gt;
@@ -613,8 +619,11 @@ EleutherAI, version 0.4.3, Zenodo, 2024, doi:10.5281&#x2F;zenodo.12608602.&lt;&#
 &lt;li&gt;&lt;a id=&quot;ref-deepseek-v4-flash&quot;&gt;&lt;&#x2F;a&gt;DeepSeek-AI,
 “&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;deepseek-ai&#x2F;DeepSeek-V4-Flash&quot;&gt;DeepSeek-V4-Flash&lt;&#x2F;a&gt;,”
 official model card, configuration, and open weights, 2026.&lt;&#x2F;li&gt;
-&lt;li&gt;&lt;a id=&quot;ref-glm52&quot;&gt;&lt;&#x2F;a&gt;GLM-5 Team &#x2F; Z.ai,
-“&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;zai-org&#x2F;GLM-5.2&quot;&gt;GLM-5.2&lt;&#x2F;a&gt;,”
+&lt;li&gt;&lt;a id=&quot;ref-glm45air&quot;&gt;&lt;&#x2F;a&gt;GLM-4.5 Team &#x2F; Z.ai,
+“&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;zai-org&#x2F;GLM-4.5-Air&quot;&gt;GLM-4.5-Air&lt;&#x2F;a&gt;,”
+official model card, configuration, and open weights, 2025.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a id=&quot;ref-minimax-m25&quot;&gt;&lt;&#x2F;a&gt;MiniMax-AI,
+“&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;MiniMaxAI&#x2F;MiniMax-M2.5&quot;&gt;MiniMax-M2.5&lt;&#x2F;a&gt;,”
 official model card, configuration, and open weights, 2026.&lt;&#x2F;li&gt;
 &lt;&#x2F;ol&gt;
 &lt;p&gt;BibTeX metadata is available in &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;llm-binarization-episode-01-dbf&#x2F;episode-01-dbf.bib&quot;&gt;&lt;code&gt;episode-01-dbf.bib&lt;&#x2F;code&gt;&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
