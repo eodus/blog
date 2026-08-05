@@ -29,8 +29,8 @@
 <article>
   <h1>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
   <span class="post-date">2026-08-05</span>
-  <div class="post-content"><p><strong>A. Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
-<a rel="external" href="https://ch.linkedin.com/in/shlemovalex">LinkedIn</a> · <a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> ·
+  <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
+<a rel="external" href="https://www.linkedin.com/in/shlemovalex/">LinkedIn</a> · <a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> ·
 <a rel="external" href="https://github.com/eodus/dbf-sign1">Scripts and results</a> ·
 <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">Model</a></p>
 <p><strong>TL;DR:</strong> Structural binary quantization for llama.cpp, demonstrated on the routed experts of
@@ -434,10 +434,11 @@ CUDA port has a richer synchronization model with which to challenge it.</p>
 operation count as the earlier runtime controls. We nevertheless reran speed with the exact release model because
 changed hidden states can alter routing and the realized workload.</p>
 <p>The matched Vulkan result used drift-balanced Q2_K → DBDBD → DBDBD → Q2_K order, identical non-expert
-model tensors, and the same command line:</p>
-<table><thead><tr><th>Claim</th><th style="text-align: right">Original FP16 experts</th><th style="text-align: right">Q2_K</th><th style="text-align: right">Binary result</th><th style="text-align: right">Binary vs Q2_K</th></tr></thead><tbody>
-<tr><td>Vulkan prompt processing, final DBDBD model, pp512</td><td style="text-align: right">—</td><td style="text-align: right">1217.95</td><td style="text-align: right">1198.09</td><td style="text-align: right">-1.63%</td></tr>
-<tr><td>Vulkan token generation, final DBDBD model, tg128</td><td style="text-align: right">—</td><td style="text-align: right">82.52</td><td style="text-align: right">82.14</td><td style="text-align: right">-0.46%</td></tr>
+model tensors, and the same command line. The FP16-expert control was measured separately with that binary and
+command shape; it is shown for scale, not included in the ABBA contrast:</p>
+<table><thead><tr><th>Claim</th><th style="text-align: right">Original FP16 experts</th><th style="text-align: right">Q2_K</th><th style="text-align: right">DBF/SIGN1</th><th style="text-align: right">DBF vs Q2_K</th></tr></thead><tbody>
+<tr><td>Vulkan prompt processing, final DBDBD model, pp512</td><td style="text-align: right">681.31</td><td style="text-align: right">1217.95</td><td style="text-align: right">1198.09</td><td style="text-align: right">-1.63%</td></tr>
+<tr><td>Vulkan token generation, final DBDBD model, tg128</td><td style="text-align: right">54.71</td><td style="text-align: right">82.52</td><td style="text-align: right">82.14</td><td style="text-align: right">-0.46%</td></tr>
 <tr><td>Full WikiText-2 perplexity, final DBDBD model</td><td style="text-align: right">6.9935</td><td style="text-align: right">7.7823</td><td style="text-align: right"><strong>7.3186</strong></td><td style="text-align: right"><strong>58.8% of Q2_K damage removed</strong></td></tr>
 </tbody></table>
 <p>All three quality models share the same non-expert remainder and differ only in the routed expert representation.
@@ -468,10 +469,6 @@ reproduction optimizes it. More importantly, both unweighted metrics ignore the 
 silently dominate the average. We report both the mean improvement and the number of matrices on which DBF wins.
 Spectral norms use fixed-seed 32-iteration power iteration. The full model-level PPL then tests whether those
 approximation gains survive inference.</p>
-<p>The current public branch also executes DBDBD at <code>121.49/32.21</code> pp512/tg128 on CPU and
-<code>291.77/46.84</code> through HIP. We do not yet publish Q2_K ratios for those backends: the CPU matched control has
-not been run, while current-upstream HIP has a known Q2_K prefill regression and would provide a misleading
-baseline. The release table will add both comparisons after running DBDBD and Q2_K from the same final binary.</p>
 <hr />
 <h2 id="9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</h2>
 <h3 id="9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</h3>
@@ -523,6 +520,20 @@ leaderboard.</li>
 </ol>
 <p>The purpose is not to manufacture one aggregate score. It is to find whether the representation changes only
 average language modeling loss or damages a particular capability that PPL hides.</p>
+<h3 id="9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</h3>
+<p>Qwen3.6-35B-A3B is a practical controlled battlefield, not the final target. The next useful test is whether the
+same representation and kernel ideas survive larger expert dimensions, different routing distributions, and newer
+frontier MoE architectures.</p>
+<p>Two immediate candidates are <strong>DeepSeek-V4-Flash</strong> and <strong>GLM-5.2</strong>. DeepSeek-V4-Flash is a 284B-parameter MoE
+with 13B activated parameters, 43 layers, 256 routed experts, and one-million-token context
+<a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-deepseek-v4-flash">[18]</a>. Its experts use 4096-wide hidden states and 2048-wide MoE intermediates, giving a
+materially different factorization and kernel regime from this Qwen model. GLM-5.2 has 78 layers, 6144-wide hidden
+states, 2048-wide MoE intermediates, 256 routed experts with eight selected per token, and a one-million-token
+context <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#ref-glm52">[19]</a>. Both are open-weight, actively deployed model families for which expert storage and
+memory traffic matter substantially.</p>
+<p>These are not promised ports. They are falsification targets. A representation that wins only on one convenient
+Qwen geometry is a useful kernel experiment; one that transfers across Qwen, DeepSeek, and GLM begins to look like
+a general post-training binary format.</p>
 <hr />
 <h2 id="10-reproducibility">10. Reproducibility</h2>
 <p>The public release includes:</p>
@@ -535,7 +546,8 @@ average language modeling loss or damages a particular capability that PPL hides
 <li>paired full-perplexity scripts;</li>
 <li>benchmark commands and hardware details.</li>
 </ul>
-<p>The comparison keeps every non-routed-expert tensor identical, replaces the same routed expert matrices in both
+<p>The <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">release model</a> is available on Hugging Face.
+The comparison keeps every non-routed-expert tensor identical, replaces the same routed expert matrices in both
 models, and accounts for their exact raw tensor payload. Quality is measured over all 580 WikiText-2 chunks using
 paired per-chunk NLL and an exact sign test, not only the aggregate perplexity. The release record identifies the
 model and code revisions used for the table and provides the exact commands. The GGUF SHA-256 is
@@ -567,7 +579,7 @@ ACL 2025; arXiv:2502.11880.</li>
 <li><a id="ref-qwen36"></a>Qwen Team,
 “<a rel="external" href="https://huggingface.co/Qwen/Qwen3.6-35B-A3B">Qwen3.6-35B-A3B: Agentic Coding Power, Now Open to All</a>,”
 model card and open weights, 2026.</li>
-<li><a id="ref-sign1-llama"></a>A. Shlemov,
+<li><a id="ref-sign1-llama"></a>Sasha Shlemov,
 “<a rel="external" href="https://github.com/eodus/sign1-llama.cpp">SIGN1/DBDBD support for llama.cpp</a>,”
 public research implementation, 2026.</li>
 <li><a id="ref-ds4"></a>S. Sanfilippo (antirez),
@@ -603,6 +615,12 @@ cooperative groups, grid synchronization, and CUDA Dynamic Parallelism, 2026.</l
 <li><a id="ref-lm-eval"></a>L. Gao et al.,
 “<a rel="external" href="https://zenodo.org/records/12608602">The Language Model Evaluation Harness</a>,”
 EleutherAI, version 0.4.3, Zenodo, 2024, doi:10.5281/zenodo.12608602.</li>
+<li><a id="ref-deepseek-v4-flash"></a>DeepSeek-AI,
+“<a rel="external" href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash</a>,”
+official model card, configuration, and open weights, 2026.</li>
+<li><a id="ref-glm52"></a>GLM-5 Team / Z.ai,
+“<a rel="external" href="https://huggingface.co/zai-org/GLM-5.2">GLM-5.2</a>,”
+official model card, configuration, and open weights, 2026.</li>
 </ol>
 <p>BibTeX metadata is available in <a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/episode-01-dbf.bib"><code>episode-01-dbf.bib</code></a>.</p>
 </div>
