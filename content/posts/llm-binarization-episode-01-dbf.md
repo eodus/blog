@@ -99,7 +99,6 @@ ourselves. The most interesting next directions are:
 3. ARM NEON (the Raspberry Pi case). Not because it is necessarily the most practical target, but because
    it opens another part of the design space.
 
----
 
 ## 1. The representation
 
@@ -252,7 +251,6 @@ inference stack around it.
 DBF is therefore the foundation of this implementation, not the final algorithm for every rank and tensor. The
 representation may outlive this particular optimizer.
 
----
 
 ## 2. Why implement it in llama.cpp?
 
@@ -277,7 +275,6 @@ supports a wide range of model families, quantization formats, and hardware back
 in our experimental runner would demonstrate possibility. A format implemented in llama.cpp can be downloaded,
 benchmarked, compared with existing quantizers, and extended by the people who already maintain those backends.
 
----
 
 ## 3. A real one-bit tensor type
 
@@ -304,7 +301,6 @@ factorized Qwen graph. Reusing Q1_0 as the sign carrier would not remove that re
 need the custom `D_in -> V -> D_mid -> U -> D_out` graph, routed scaler handling, and architecture-specific kernel
 dispatch. Q1_0 can disguise the storage type; it cannot make DBDBD a stock model architecture.
 
----
 
 ## 4. Teaching the model loader DBDBD
 
@@ -362,7 +358,6 @@ prefill, one expert matrix is applied to many vectors, so weight loads, routing 
 amortized across columns. Generation usually applies that matrix to one vector at a time. The same arithmetic
 therefore belongs to two different kernel regimes: MMQ for many vectors and MMV for one.
 
----
 
 ## 5. Vulkan: where the representation became practical
 
@@ -458,7 +453,6 @@ If you optimize SIGN1 for another architecture, try all the formulations rather 
 The final race on Halo was close, and small changes in work ownership repeatedly reversed apparently obvious
 conclusions. In particular, test several row/column/workgroup regimes.
 
----
 
 ## 6. CPU: a portable baseline
 
@@ -467,7 +461,6 @@ AVX-512 when available. The AVX-512 prompt path repacks eight output rows togeth
 vectors per call; AVX2 provides the narrower vector path, with a scalar implementation as the correctness
 fallback. It is functional and tested, but not the performance focus here.
 
----
 
 ## 7. CUDA/HIP: a starting point, not a polished backend
 
@@ -549,7 +542,6 @@ silently dominate the average. We report both the mean improvement and the numbe
 Spectral norms use fixed-seed 32-iteration power iteration. The full model-level PPL then tests whether those
 approximation gains survive inference.
 
----
 
 ## 9. Open questions and the next episodes
 
@@ -641,7 +633,6 @@ These are not promised ports. They are falsification targets. A representation t
 Qwen geometry is a useful kernel experiment; one that transfers across Qwen, GLM, MiniMax, and DeepSeek begins to
 look like a general post-training binary format.
 
----
 
 ## 10. Reproducibility
 
@@ -673,7 +664,6 @@ analysis without AI would be a strange methodological choice.
 
 DBF is not a new miracle, but it is a working machine built from an idea worth taking seriously.
 
----
 
 ## References
 
