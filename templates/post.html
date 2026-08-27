@@ -11,8 +11,8 @@
       <summary>Contents</summary>
       <ul>
       {% for h in page.toc %}
-        <li><a href="{{ h.permalink | safe }}">{{ h.title }}</a>
-          {% if h.children %}<ul>{% for child in h.children %}<li><a href="{{ child.permalink | safe }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
+        <li><a href="#{{ h.id }}">{{ h.title }}</a>
+          {% if h.children %}<ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
         </li>
       {% endfor %}
       </ul>
@@ -25,8 +25,8 @@
     <strong>Contents</strong>
     <ul>
     {% for h in page.toc %}
-      <li><a href="{{ h.permalink | safe }}">{{ h.title }}</a>
-        {% if h.children %}<ul>{% for child in h.children %}<li><a href="{{ child.permalink | safe }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
+      <li><a href="#{{ h.id }}">{{ h.title }}</a>
+        {% if h.children %}<ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a></li>{% endfor %}</ul>{% endif %}
       </li>
     {% endfor %}
     </ul>
