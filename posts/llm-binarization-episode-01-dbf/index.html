@@ -17,6 +17,9 @@
     .post-shell { max-width: 1080px; margin: 0 auto; }
     .post-layout { display: grid; grid-template-columns: minmax(0, 720px) 240px; gap: 3.5rem; align-items: start; }
     article { min-width: 0; }
+    .post-content { min-width: 0; }
+    .post-content a { overflow-wrap: anywhere; }
+    details { max-width: 100%; overflow: hidden; }
     pre { max-width: 100%; background: #f6f8fa; padding: 1rem; overflow-x: auto; border-radius: 4px; }
     code { font-size: 0.9em; }
     :not(pre) > code { overflow-wrap: anywhere; }
@@ -68,47 +71,47 @@
       <summary>Contents</summary>
       <ul>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-the-representation">1. The representation</a>
-          <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
+        <li><a href="#1-the-representation">1. The representation</a>
+          <ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
+        <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
+        <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
+        <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
+        <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
+        <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
+        <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#8-current-measurements">8. Current measurements</a>
+        <li><a href="#8-current-measurements">8. Current measurements</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
-          <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
+        <li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
+          <ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#10-reproducibility">10. Reproducibility</a>
+        <li><a href="#10-reproducibility">10. Reproducibility</a>
           
         </li>
       
-        <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#references">References</a>
+        <li><a href="#references">References</a>
           
         </li>
       
@@ -730,47 +733,47 @@ official model card, configuration, and open weights, 2026.</li>
     <strong>Contents</strong>
     <ul>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-the-representation">1. The representation</a>
-        <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
+      <li><a href="#1-the-representation">1. The representation</a>
+        <ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
+      <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
+      <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
+      <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
+      <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
+      <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
+      <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#8-current-measurements">8. Current measurements</a>
+      <li><a href="#8-current-measurements">8. Current measurements</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
-        <ul><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
+      <li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
+        <ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#10-reproducibility">10. Reproducibility</a>
+      <li><a href="#10-reproducibility">10. Reproducibility</a>
         
       </li>
     
-      <li><a href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/#references">References</a>
+      <li><a href="#references">References</a>
         
       </li>
     
