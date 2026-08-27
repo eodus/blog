@@ -8,19 +8,31 @@
   <style>
     * { box-sizing: border-box; }
     html { overflow-x: hidden; }
-    body { font-family: system-ui, sans-serif; max-width: 1120px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
+    body { font-family: system-ui, sans-serif; max-width: 1440px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
     h1, h2, h3 { margin-top: 2rem; }
     a { color: #0366d6; }
     nav { max-width: 720px; margin: 0 auto 2rem; }
     nav a { margin-right: 1rem; }
     .content { max-width: 720px; margin: 0 auto; }
-    .post-shell { max-width: 1080px; margin: 0 auto; }
-    .post-layout { display: grid; grid-template-columns: minmax(0, 720px) 240px; gap: 3.5rem; align-items: start; }
+    .post-shell { max-width: 1360px; margin: 0 auto; }
+    .post-layout { display: grid; grid-template-columns: minmax(0, 1000px) 240px; gap: 3.5rem; align-items: start; }
     article { min-width: 0; }
     .post-content { min-width: 0; }
     .post-content a { overflow-wrap: anywhere; }
     details { max-width: 100%; overflow: hidden; }
+    .post-content .cut-toc-heading { visibility: hidden; height: 0; margin: 0; overflow: hidden; scroll-margin-top: 1.5rem; }
+    .post-content details { margin: 1.25rem 0; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; }
+    .post-content details > summary { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; cursor: pointer; font-weight: 600; color: #24292f; list-style: none; }
+    .post-content details > summary::-webkit-details-marker { display: none; }
+    .post-content details > summary > p { margin: 0; }
+    .post-content details > summary:hover { background: #eef1f4; }
+    .post-content details > summary::before { content: "▶"; flex: 0 0 auto; color: #57606a; font-size: 0.8em; transition: transform 120ms ease; }
+    .post-content details[open] > summary::before { transform: rotate(90deg); }
+    .post-content details[open] > summary { border-bottom: 1px solid #d8dee4; }
+    .post-content details[open] { padding-bottom: 1rem; }
+    .post-content details > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
     pre { max-width: 100%; background: #f6f8fa; padding: 1rem; overflow-x: auto; border-radius: 4px; }
+    .post-content .caption-cut pre { max-height: 32rem; overflow: auto; }
     code { font-size: 0.9em; }
     :not(pre) > code { overflow-wrap: anywhere; }
     table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
@@ -28,20 +40,24 @@
     th { background: #f6f8fa; }
     th:not(:first-child), td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
     .post-date { color: #666; font-size: 0.9em; }
-    .toc { position: sticky; top: 1.5rem; font-size: 0.84rem; line-height: 1.35; }
+    .toc { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; padding-right: 0.5rem; font-size: 0.84rem; line-height: 1.35; scrollbar-gutter: stable; }
     .toc strong { display: block; margin-bottom: 0.65rem; }
     .toc ul { margin: 0; padding-left: 1rem; }
     .toc > ul { padding-left: 0; list-style: none; }
     .toc li { margin: 0.35rem 0; }
+    .toc details { overflow: visible; }
+    .toc summary { cursor: pointer; }
+    .toc summary > a { margin-left: 0.2rem; }
     .toc a { color: #555; text-decoration: none; }
     .toc a:hover { color: #0366d6; text-decoration: underline; }
     .toc-mobile { display: none; }
-    @media (max-width: 980px) {
+    @media (max-width: 1320px) {
       body { max-width: 752px; }
       .post-layout { display: block; }
       .toc { display: none; }
       .toc-mobile { display: block; margin: 1.5rem 0 2rem; }
       .toc-mobile summary { cursor: pointer; font-weight: 600; }
+      .toc-mobile li > details > summary { font-weight: normal; }
       .toc-mobile ul { padding-left: 1.25rem; }
     }
     @media (max-width: 520px) {
@@ -64,56 +80,35 @@
     
 <div class="post-layout">
   <article>
-    <h1>LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
+    <h1 id="top">LLM Binarization — Episode One: DBF aka Addition Is (Almost) All You Need</h1>
     <span class="post-date">2026-08-05</span>
     
     <details class="toc-mobile">
       <summary>Contents</summary>
       <ul>
+        <li><a href="#top">Introduction</a></li>
       
-        <li><a href="#1-the-representation">1. The representation</a>
-          <ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
-        </li>
+        <li><details><summary><a href="#1-the-representation">1. The representation</a></summary><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></details></li>
       
-        <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
-          
-        </li>
+        <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li>
       
-        <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
-          
-        </li>
+        <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li>
       
-        <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
-          
-        </li>
+        <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li>
       
-        <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
-          
-        </li>
+        <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li>
       
-        <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
-          
-        </li>
+        <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li>
       
-        <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
-          
-        </li>
+        <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li>
       
-        <li><a href="#8-current-measurements">8. Current measurements</a>
-          
-        </li>
+        <li><a href="#8-current-measurements">8. Current measurements</a></li>
       
-        <li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
-          <ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
-        </li>
+        <li><details><summary><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a></summary><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></details></li>
       
-        <li><a href="#10-reproducibility">10. Reproducibility</a>
-          
-        </li>
+        <li><a href="#10-reproducibility">10. Reproducibility</a></li>
       
-        <li><a href="#references">References</a>
-          
-        </li>
+        <li><a href="#references">References</a></li>
       
       </ul>
     </details>
@@ -194,7 +189,6 @@ CUDA-source path through HIP, but that path is slower than Vulkan on this machin
 <li>ARM NEON (the Raspberry Pi case). Not because it is necessarily the most practical target, but because
 it opens another part of the design space.</li>
 </ol>
-<hr />
 <h2 id="1-the-representation">1. The representation</h2>
 <p>A conventional dense linear layer computes</p>
 <pre><code data-lang="text">y = W x,
@@ -300,7 +294,6 @@ The method is compact, reproducible, GPU-friendly, and sufficiently strong to ju
 inference stack around it.</p>
 <p>DBF is therefore the foundation of this implementation, not the final algorithm for every rank and tensor. The
 representation may outlive this particular optimizer.</p>
-<hr />
 <h2 id="2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</h2>
 <p>A Python reconstruction answers an important but narrow question: does the factorization approximate an
 individual matrix? We wanted answers about a usable model, in this order:</p>
@@ -321,7 +314,6 @@ of them. There is nowhere for a missing dependency or an accidental dense fallba
 supports a wide range of model families, quantization formats, and hardware backends. A format implemented only
 in our experimental runner would demonstrate possibility. A format implemented in llama.cpp can be downloaded,
 benchmarked, compared with existing quantizers, and extended by the people who already maintain those backends.</p>
-<hr />
 <h2 id="3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</h2>
 <p>llama.cpp already has Q1_0, and our first prototype used it as a sign carrier. We separated SIGN1 for three
 reasons. Q1_0 is a quantization format with its own block scaling and execution contract; DBF already carries
@@ -342,7 +334,6 @@ implementation details are in the code. More realistically, your AI will read th
 factorized Qwen graph. Reusing Q1_0 as the sign carrier would not remove that requirement. The runtime would still
 need the custom <code>D_in -&gt; V -&gt; D_mid -&gt; U -&gt; D_out</code> graph, routed scaler handling, and architecture-specific kernel
 dispatch. Q1_0 can disguise the storage type; it cannot make DBDBD a stock model architecture.</p>
-<hr />
 <h2 id="4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</h2>
 <p>For each routed expert projection, the model may contain five tensors:</p>
 <pre><code data-lang="text">projection_din
@@ -385,7 +376,6 @@ teaching the runtime to preserve those distinctions without changing the DBDBD f
 prefill, one expert matrix is applied to many vectors, so weight loads, routing setup, and conversion can be
 amortized across columns. Generation usually applies that matrix to one vector at a time. The same arithmetic
 therefore belongs to two different kernel regimes: MMQ for many vectors and MMV for one.</p>
-<hr />
 <h2 id="5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</h2>
 <p>Vulkan is the backend we optimized seriously because it is the fastest llama.cpp backend for this model and
 workload on our Strix Halo.</p>
@@ -490,13 +480,11 @@ shape-specific rows2/rows4/rows8 generation kernels.</p>
 <p>If you optimize SIGN1 for another architecture, try all the formulations rather than porting our winner blindly.
 The final race on Halo was close, and small changes in work ownership repeatedly reversed apparently obvious
 conclusions. In particular, test several row/column/workgroup regimes.</p>
-<hr />
 <h2 id="6-cpu-a-portable-baseline">6. CPU: a portable baseline</h2>
 <p>The CPU path quantizes activations to Q8, applies packed signs during the dot product, and uses AVX2 or
 AVX-512 when available. The AVX-512 prompt path repacks eight output rows together and evaluates several input
 vectors per call; AVX2 provides the narrower vector path, with a scalar implementation as the correctness
 fallback. It is functional and tested, but not the performance focus here.</p>
-<hr />
 <h2 id="7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA/HIP: a starting point, not a polished backend</h2>
 <p>We wired SIGN1 and routed DBF scalers through llama.cpp's CUDA-source MMV/MMQ implementation and tested that
 code through HIP on our AMD machine. The full model runs correctly, although HIP currently retains a bounded
@@ -563,7 +551,6 @@ reproduction optimizes it. More importantly, both unweighted metrics ignore the 
 silently dominate the average. We report both the mean improvement and the number of matrices on which DBF wins.
 Spectral norms use fixed-seed 32-iteration power iteration. The full model-level PPL then tests whether those
 approximation gains survive inference.</p>
-<hr />
 <h2 id="9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</h2>
 <h3 id="9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</h3>
 <p>The original method is especially strong at very low budgets. As the intermediate dimension grows, the
@@ -634,7 +621,6 @@ multi-node follow-up, not the first transfer test.</p>
 <p>These are not promised ports. They are falsification targets. A representation that wins only on one convenient
 Qwen geometry is a useful kernel experiment; one that transfers across Qwen, GLM, MiniMax, and DeepSeek begins to
 look like a general post-training binary format.</p>
-<hr />
 <h2 id="10-reproducibility">10. Reproducibility</h2>
 <p>The public release includes:</p>
 <ul>
@@ -661,7 +647,6 @@ Sasha directed the research, made the final technical and publication decisions,
 claims. AI assistance is not incidental here: doing this amount of AI implementation, experimentation, and source
 analysis without AI would be a strange methodological choice.</p>
 <p>DBF is not a new miracle, but it is a working machine built from an idea worth taking seriously.</p>
-<hr />
 <h2 id="references">References</h2>
 <ol>
 <li><a id="ref-bitnet"></a>H. Wang et al.,
@@ -732,50 +717,29 @@ official model card, configuration, and open weights, 2026.</li>
   <aside class="toc" aria-label="Table of contents">
     <strong>Contents</strong>
     <ul>
+      <li><a href="#top">Introduction</a></li>
     
-      <li><a href="#1-the-representation">1. The representation</a>
-        <ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul>
-      </li>
+      <li><details><summary><a href="#1-the-representation">1. The representation</a></summary><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></details></li>
     
-      <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a>
-        
-      </li>
+      <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li>
     
-      <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a>
-        
-      </li>
+      <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li>
     
-      <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a>
-        
-      </li>
+      <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li>
     
-      <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a>
-        
-      </li>
+      <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li>
     
-      <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a>
-        
-      </li>
+      <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li>
     
-      <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a>
-        
-      </li>
+      <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li>
     
-      <li><a href="#8-current-measurements">8. Current measurements</a>
-        
-      </li>
+      <li><a href="#8-current-measurements">8. Current measurements</a></li>
     
-      <li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a>
-        <ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul>
-      </li>
+      <li><details><summary><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a></summary><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></details></li>
     
-      <li><a href="#10-reproducibility">10. Reproducibility</a>
-        
-      </li>
+      <li><a href="#10-reproducibility">10. Reproducibility</a></li>
     
-      <li><a href="#references">References</a>
-        
-      </li>
+      <li><a href="#references">References</a></li>
     
     </ul>
   </aside>
