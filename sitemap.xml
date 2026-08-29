@@ -7,11 +7,18 @@
         <loc>https://eodus.github.io/blog/posts/</loc>
     </url>
     <url>
+        <loc>https://eodus.github.io/blog/posts/ai-mid-memory/</loc>
+        <lastmod>2026-08-29</lastmod>
+    </url>
+    <url>
         <loc>https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/</loc>
         <lastmod>2026-08-05</lastmod>
     </url>
     <url>
         <loc>https://eodus.github.io/blog/tags/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/ai/</loc>
     </url>
     <url>
         <loc>https://eodus.github.io/blog/tags/binary-models/</loc>
@@ -20,12 +27,21 @@
         <loc>https://eodus.github.io/blog/tags/llama-cpp/</loc>
     </url>
     <url>
+        <loc>https://eodus.github.io/blog/tags/memory/</loc>
+    </url>
+    <url>
         <loc>https://eodus.github.io/blog/tags/quantization/</loc>
     </url>
     <url>
         <loc>https://eodus.github.io/blog/tags/research/</loc>
     </url>
     <url>
+        <loc>https://eodus.github.io/blog/tags/software-engineering/</loc>
+    </url>
+    <url>
         <loc>https://eodus.github.io/blog/tags/vulkan/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/working-practices/</loc>
     </url>
 </urlset>
