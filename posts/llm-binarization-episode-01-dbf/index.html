@@ -20,7 +20,7 @@
     .post-content { min-width: 0; }
     .post-content a { overflow-wrap: anywhere; }
     details { max-width: 100%; overflow: hidden; }
-    .post-content .cut-toc-heading { visibility: hidden; height: 0; margin: 0; overflow: hidden; scroll-margin-top: 1.5rem; }
+    .post-content .intro-toc-heading, .post-content .cut-toc-heading { visibility: hidden; height: 0; margin: 0; overflow: hidden; scroll-margin-top: 1.5rem; }
     .post-content details { margin: 1.25rem 0; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; }
     .post-content details > summary { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; cursor: pointer; font-weight: 600; color: #24292f; list-style: none; }
     .post-content details > summary::-webkit-details-marker { display: none; }
@@ -86,34 +86,16 @@
     <details class="toc-mobile">
       <summary>Contents</summary>
       <ul>
-        <li><a href="#top">Introduction</a></li>
       
-        <li><details><summary><a href="#1-the-representation">1. The representation</a></summary><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></details></li>
-      
-        <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li>
-      
-        <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li>
-      
-        <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li>
-      
-        <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li>
-      
-        <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li>
-      
-        <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li>
-      
-        <li><a href="#8-current-measurements">8. Current measurements</a></li>
-      
-        <li><details><summary><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a></summary><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></details></li>
-      
-        <li><a href="#10-reproducibility">10. Reproducibility</a></li>
+        <li><details><summary><a href="#introduction">Introduction</a></summary><ul><li><a href="#1-the-representation">1. The representation</a><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></li><li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li><li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li><li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li><li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li><li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li><li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li><li><a href="#8-current-measurements">8. Current measurements</a></li><li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></li><li><a href="#10-reproducibility">10. Reproducibility</a></li></ul></details></li>
       
         <li><a href="#references">References</a></li>
       
       </ul>
     </details>
     
-    <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
+    <div class="post-content"><h1 id="introduction" class="intro-toc-heading">Introduction</h1>
+<p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong> ·
 <a rel="external" href="https://github.com/eodus/sign1-llama.cpp">Runtime</a> · <a rel="external" href="https://github.com/eodus/dbf-sign1">Scripts and
 results</a> ·
 <a rel="external" href="https://huggingface.co/eodus/Qwen3.6-35B-A3B-DBF-SIGN1">Model</a></p>
@@ -999,27 +981,8 @@ Available: <a rel="external" href="https://huggingface.co/MiniMaxAI/MiniMax-M2.5
   <aside class="toc" aria-label="Table of contents">
     <strong>Contents</strong>
     <ul>
-      <li><a href="#top">Introduction</a></li>
     
-      <li><details><summary><a href="#1-the-representation">1. The representation</a></summary><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></details></li>
-    
-      <li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li>
-    
-      <li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li>
-    
-      <li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li>
-    
-      <li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li>
-    
-      <li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li>
-    
-      <li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li>
-    
-      <li><a href="#8-current-measurements">8. Current measurements</a></li>
-    
-      <li><details><summary><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a></summary><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></details></li>
-    
-      <li><a href="#10-reproducibility">10. Reproducibility</a></li>
+      <li><details><summary><a href="#introduction">Introduction</a></summary><ul><li><a href="#1-the-representation">1. The representation</a><ul><li><a href="#1-1-bit-budget">1.1 Bit budget</a></li><li><a href="#1-2-what-we-inherit-from-dbf">1.2 What we inherit from DBF</a></li></ul></li><li><a href="#2-why-implement-it-in-llama-cpp">2. Why implement it in llama.cpp?</a></li><li><a href="#3-a-real-one-bit-tensor-type">3. A real one-bit tensor type</a></li><li><a href="#4-teaching-the-model-loader-dbdbd">4. Teaching the model loader DBDBD</a></li><li><a href="#5-vulkan-where-the-representation-became-practical">5. Vulkan: where the representation became practical</a></li><li><a href="#6-cpu-a-portable-baseline">6. CPU: a portable baseline</a></li><li><a href="#7-cuda-hip-a-starting-point-not-a-polished-backend">7. CUDA&#x2F;HIP: a starting point, not a polished backend</a></li><li><a href="#8-current-measurements">8. Current measurements</a></li><li><a href="#9-open-questions-and-the-next-episodes">9. Open questions and the next episodes</a><ul><li><a href="#9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired">9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?</a></li><li><a href="#9-2-can-one-structural-method-cover-all-important-model-matrices">9.2 Can one structural method cover all important model matrices?</a></li><li><a href="#9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense">9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?</a></li><li><a href="#9-4-which-matrix-error-should-we-optimize">9.4 Which matrix error should we optimize?</a></li><li><a href="#9-5-how-much-evaluation-is-enough">9.5 How much evaluation is enough?</a></li><li><a href="#9-6-does-the-result-transfer-to-more-interesting-models">9.6 Does the result transfer to more interesting models?</a></li></ul></li><li><a href="#10-reproducibility">10. Reproducibility</a></li></ul></details></li>
     
       <li><a href="#references">References</a></li>
     

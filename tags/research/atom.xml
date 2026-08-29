@@ -23,7 +23,8 @@
         <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/"/>
         <id>https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/</id>
         
-        <content type="html" xml:base="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/">&lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt; ·
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/">&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+&lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt; ·
 &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;eodus&#x2F;sign1-llama.cpp&quot;&gt;Runtime&lt;&#x2F;a&gt; · &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;eodus&#x2F;dbf-sign1&quot;&gt;Scripts and
 results&lt;&#x2F;a&gt; ·
 &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;eodus&#x2F;Qwen3.6-35B-A3B-DBF-SIGN1&quot;&gt;Model&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;

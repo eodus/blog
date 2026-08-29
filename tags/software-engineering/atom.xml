@@ -23,7 +23,8 @@
         <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/ai-mid-memory/"/>
         <id>https://eodus.github.io/blog/posts/ai-mid-memory/</id>
         
-        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+&lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; We present a cross-session continuity mechanism and a
 pipeline for accumulating, curating, reusing, and selectively promoting
 knowledge established through work with AI.&lt;&#x2F;p&gt;
@@ -69,9 +70,9 @@ accumulated knowledge instead of zero—and to preserve the work of
 improving the memory system itself.&lt;&#x2F;p&gt;
 &lt;details class=&quot;caption-cut&quot;&gt;
 &lt;summary&gt;
-&lt;p&gt;What can I do if I recognize the merit but barely understand the
-technical terminology?&lt;&#x2F;p&gt;
+&lt;p&gt;What can I do if I recognize the merit but barely understand the technical terminology?&lt;&#x2F;p&gt;
 &lt;&#x2F;summary&gt;
+&lt;h2 id=&quot;what-can-i-do-if-i-recognize-the-merit-but-barely-understand-the-technical-terminology&quot; class=&quot;cut-toc-heading&quot;&gt;What can I do if I recognize the merit but barely understand the technical terminology?&lt;&#x2F;h2&gt;
 &lt;p&gt;Short answer. Give this text to your AI and ask it something like, “I
 want to have the system described here. What can we do?” Follow the
 guidance (&lt;em&gt;critically&lt;&#x2F;em&gt;, as usual). Ask the AI to explain the uncertain

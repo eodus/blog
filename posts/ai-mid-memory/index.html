@@ -20,7 +20,7 @@
     .post-content { min-width: 0; }
     .post-content a { overflow-wrap: anywhere; }
     details { max-width: 100%; overflow: hidden; }
-    .post-content .cut-toc-heading { visibility: hidden; height: 0; margin: 0; overflow: hidden; scroll-margin-top: 1.5rem; }
+    .post-content .intro-toc-heading, .post-content .cut-toc-heading { visibility: hidden; height: 0; margin: 0; overflow: hidden; scroll-margin-top: 1.5rem; }
     .post-content details { margin: 1.25rem 0; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; }
     .post-content details > summary { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; cursor: pointer; font-weight: 600; color: #24292f; list-style: none; }
     .post-content details > summary::-webkit-details-marker { display: none; }
@@ -86,7 +86,8 @@
     <details class="toc-mobile">
       <summary>Contents</summary>
       <ul>
-        <li><a href="#top">Introduction</a></li>
+      
+        <li><details><summary><a href="#introduction">Introduction</a></summary><ul><li><a href="#what-can-i-do-if-i-recognize-the-merit-but-barely-understand-the-technical-terminology">What can I do if I recognize the merit but barely understand the technical terminology?</a></li></ul></details></li>
       
         <li><details><summary><a href="#practice-1-access-the-session-archive">Practice 1: Access the session archive</a></summary><ul><li><a href="#session-history-instructions-and-readers">Session-history instructions and readers</a><ul><li><a href="#local-session-history-instruction">Local session-history instruction</a></li><li><a href="#vs-code-catch-skill">VS Code catch SKILL</a></li><li><a href="#zed-catch-skill">Zed catch SKILL</a></li><li><a href="#reader-source-code">Reader source code</a></li><li><a href="#vs-code-session-reader">VS Code session reader</a></li><li><a href="#zed-session-reader">Zed session reader</a></li></ul></li></ul></details></li>
       
@@ -109,7 +110,8 @@
       </ul>
     </details>
     
-    <div class="post-content"><p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong></p>
+    <div class="post-content"><h1 id="introduction" class="intro-toc-heading">Introduction</h1>
+<p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong></p>
 <p><strong>TL;DR:</strong> We present a cross-session continuity mechanism and a
 pipeline for accumulating, curating, reusing, and selectively promoting
 knowledge established through work with AI.</p>
@@ -155,9 +157,9 @@ accumulated knowledge instead of zero—and to preserve the work of
 improving the memory system itself.</p>
 <details class="caption-cut">
 <summary>
-<p>What can I do if I recognize the merit but barely understand the
-technical terminology?</p>
+<p>What can I do if I recognize the merit but barely understand the technical terminology?</p>
 </summary>
+<h2 id="what-can-i-do-if-i-recognize-the-merit-but-barely-understand-the-technical-terminology" class="cut-toc-heading">What can I do if I recognize the merit but barely understand the technical terminology?</h2>
 <p>Short answer. Give this text to your AI and ask it something like, “I
 want to have the system described here. What can we do?” Follow the
 guidance (<em>critically</em>, as usual). Ask the AI to explain the uncertain
@@ -2405,7 +2407,8 @@ constraints.” [Online]. Available:
   <aside class="toc" aria-label="Table of contents">
     <strong>Contents</strong>
     <ul>
-      <li><a href="#top">Introduction</a></li>
+    
+      <li><details><summary><a href="#introduction">Introduction</a></summary><ul><li><a href="#what-can-i-do-if-i-recognize-the-merit-but-barely-understand-the-technical-terminology">What can I do if I recognize the merit but barely understand the technical terminology?</a></li></ul></details></li>
     
       <li><details><summary><a href="#practice-1-access-the-session-archive">Practice 1: Access the session archive</a></summary><ul><li><a href="#session-history-instructions-and-readers">Session-history instructions and readers</a><ul><li><a href="#local-session-history-instruction">Local session-history instruction</a></li><li><a href="#vs-code-catch-skill">VS Code catch SKILL</a></li><li><a href="#zed-catch-skill">Zed catch SKILL</a></li><li><a href="#reader-source-code">Reader source code</a></li><li><a href="#vs-code-session-reader">VS Code session reader</a></li><li><a href="#zed-session-reader">Zed session reader</a></li></ul></li></ul></details></li>
     
