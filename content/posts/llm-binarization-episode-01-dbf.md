@@ -1075,5 +1075,3 @@ Available: <https://huggingface.co/MiniMaxAI/MiniMax-M2.5></span>
 </div>
 
 </div>
-
-BibTeX metadata is available in <a href="episode-01-dbf.bib"><code>episode-01-dbf.bib</code></a>.

@@ -2609,5 +2609,3 @@ constraints.” \[Online\]. Available:
 </div>
 
 </div>
-
-BibTeX metadata is available in <a href="references.bib"><code>references.bib</code></a>.
