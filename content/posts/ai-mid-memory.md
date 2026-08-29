@@ -10,6 +10,8 @@ tags = ["ai", "memory", "software-engineering", "working-practices"]
 kind = "engineering-practice"
 status = "article"
 +++
+# Introduction {.intro-toc-heading}
+
 **Sasha Shlemov**, with **Drinkins, personal AI assistant**
 
 **TL;DR:** We present a cross-session continuity mechanism and a
@@ -68,9 +70,10 @@ improving the memory system itself.
 
 <summary>
 
-What can I do if I recognize the merit but barely understand the
-technical terminology?
+What can I do if I recognize the merit but barely understand the technical terminology?
 </summary>
+
+## What can I do if I recognize the merit but barely understand the technical terminology? {.cut-toc-heading}
 
 Short answer. Give this text to your AI and ask it something like, “I
 want to have the system described here. What can we do?” Follow the

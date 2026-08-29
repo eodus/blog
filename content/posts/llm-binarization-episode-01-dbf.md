@@ -10,6 +10,8 @@ tags = ["binary-models", "quantization", "llama.cpp", "vulkan", "research"]
 kind = "technical-report"
 status = "result"
 +++
+# Introduction {.intro-toc-heading}
+
 **Sasha Shlemov**, with **Drinkins, personal AI assistant** ·
 [Runtime](https://github.com/eodus/sign1-llama.cpp) · [Scripts and
 results](https://github.com/eodus/dbf-sign1) ·
