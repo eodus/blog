@@ -574,7 +574,9 @@ def resolve_session(args: argparse.Namespace, database: Path, sessions_dir: Path
 
 
 def reconstruct_session(session_file: Path) -> dict[str, Any]:
-    lines = session_file.read_text(encoding="utf-8").splitlines()
+    # JSON Lines records are delimited by LF. str.splitlines() also splits on
+    # legal JSON string characters such as U+0085 (NEL), corrupting a record.
+    lines = session_file.read_text(encoding="utf-8").split("\n")
     if not lines:
         raise RuntimeError(f"Empty session file: {session_file}")
     base = json.loads(lines[0])
