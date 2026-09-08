@@ -205,10 +205,36 @@ read-only mode; and never modifies session JSONL. It is safe to use while VS Cod
 
 ### 1. Locate the previous substantive session
 
-Set the paths explicitly and save the newest-first session list to a scratch file:
+Resolve the reader from this skill&amp;#39;s canonical checkout. Allow an explicit environment-variable override for copied or
+non-symlinked installations. Fail fast if neither path exists; do not recursively scan the home directory.
 
 ```powershell
-$reader = &amp;quot;&amp;lt;PATH_TO_VSCODE_SESSION_READER&amp;gt;&amp;quot;
+$reader = $env:VSCODE_SESSION_READER
+if ([string]::IsNullOrWhiteSpace($reader)) {
+  $liveSkill = Join-Path $HOME &amp;quot;.agents&#x2F;skills&#x2F;session-catch-vscode&#x2F;SKILL.md&amp;quot;
+  $skill = Get-Item -LiteralPath $liveSkill -Force -ErrorAction Stop
+  if ($skill.LinkType -ne &amp;quot;SymbolicLink&amp;quot;) {
+    throw &amp;quot;Set VSCODE_SESSION_READER to the full path of vscode-session-reader.py.&amp;quot;
+  }
+
+  $target = [string]$skill.Target
+  if (-not [System.IO.Path]::IsPathRooted($target)) {
+    $target = Join-Path $skill.DirectoryName $target
+  }
+
+  $canonicalSkill = (Resolve-Path -LiteralPath $target -ErrorAction Stop).Path
+  $repo = Split-Path -Parent (Split-Path -Parent $canonicalSkill)
+  $reader = Join-Path $repo &amp;quot;scripts&#x2F;vscode-session-reader.py&amp;quot;
+}
+
+if (-not (Test-Path -LiteralPath $reader -PathType Leaf)) {
+  throw &amp;quot;VS Code session reader not found at &amp;#39;$reader&amp;#39;. Set VSCODE_SESSION_READER explicitly.&amp;quot;
+}
+```
+
+Set the workspace path explicitly and save the newest-first session list to a scratch file:
+
+```powershell
 $workspace = &amp;quot;&amp;lt;WORKSPACE_PATH&amp;gt;&amp;quot;
 $outDir = Join-Path $workspace &amp;quot;tmp&#x2F;session-catch-vscode&amp;quot;
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
@@ -1242,8 +1268,8 @@ becoming part of the actual system prompt;&lt;&#x2F;li&gt;
 &lt;li&gt;repeated executable procedure → script or SKILL;&lt;&#x2F;li&gt;
 &lt;li&gt;local rationale or design decision → code comment or README;&lt;&#x2F;li&gt;
 &lt;li&gt;stable deterministic invariant that is cheaply enforceable →
-assertion, test, type, or validation schema; do not use AI as a
-unit-test engine;&lt;&#x2F;li&gt;
+assertion, test, type, or validation schema; &lt;strong&gt;do not use AI as a
+unit-test engine;&lt;&#x2F;strong&gt;&lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
 &lt;&#x2F;li&gt;
 &lt;li&gt;important but still-uncertain notes are kept in MEMORY with explicit

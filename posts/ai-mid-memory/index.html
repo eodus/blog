@@ -292,10 +292,36 @@ read-only mode; and never modifies session JSONL. It is safe to use while VS Cod
 
 ### 1. Locate the previous substantive session
 
-Set the paths explicitly and save the newest-first session list to a scratch file:
+Resolve the reader from this skill&#39;s canonical checkout. Allow an explicit environment-variable override for copied or
+non-symlinked installations. Fail fast if neither path exists; do not recursively scan the home directory.
 
 ```powershell
-$reader = &quot;&lt;PATH_TO_VSCODE_SESSION_READER&gt;&quot;
+$reader = $env:VSCODE_SESSION_READER
+if ([string]::IsNullOrWhiteSpace($reader)) {
+  $liveSkill = Join-Path $HOME &quot;.agents/skills/session-catch-vscode/SKILL.md&quot;
+  $skill = Get-Item -LiteralPath $liveSkill -Force -ErrorAction Stop
+  if ($skill.LinkType -ne &quot;SymbolicLink&quot;) {
+    throw &quot;Set VSCODE_SESSION_READER to the full path of vscode-session-reader.py.&quot;
+  }
+
+  $target = [string]$skill.Target
+  if (-not [System.IO.Path]::IsPathRooted($target)) {
+    $target = Join-Path $skill.DirectoryName $target
+  }
+
+  $canonicalSkill = (Resolve-Path -LiteralPath $target -ErrorAction Stop).Path
+  $repo = Split-Path -Parent (Split-Path -Parent $canonicalSkill)
+  $reader = Join-Path $repo &quot;scripts/vscode-session-reader.py&quot;
+}
+
+if (-not (Test-Path -LiteralPath $reader -PathType Leaf)) {
+  throw &quot;VS Code session reader not found at &#39;$reader&#39;. Set VSCODE_SESSION_READER explicitly.&quot;
+}
+```
+
+Set the workspace path explicitly and save the newest-first session list to a scratch file:
+
+```powershell
 $workspace = &quot;&lt;WORKSPACE_PATH&gt;&quot;
 $outDir = Join-Path $workspace &quot;tmp/session-catch-vscode&quot;
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
@@ -1329,8 +1355,8 @@ becoming part of the actual system prompt;</li>
 <li>repeated executable procedure → script or SKILL;</li>
 <li>local rationale or design decision → code comment or README;</li>
 <li>stable deterministic invariant that is cheaply enforceable →
-assertion, test, type, or validation schema; do not use AI as a
-unit-test engine;</li>
+assertion, test, type, or validation schema; <strong>do not use AI as a
+unit-test engine;</strong></li>
 </ul>
 </li>
 <li>important but still-uncertain notes are kept in MEMORY with explicit
