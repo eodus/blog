@@ -230,10 +230,36 @@ read-only mode; and never modifies session JSONL. It is safe to use while VS Cod
 
 ### 1. Locate the previous substantive session
 
-Set the paths explicitly and save the newest-first session list to a scratch file:
+Resolve the reader from this skill's canonical checkout. Allow an explicit environment-variable override for copied or
+non-symlinked installations. Fail fast if neither path exists; do not recursively scan the home directory.
 
 ```powershell
-$reader = "<PATH_TO_VSCODE_SESSION_READER>"
+$reader = $env:VSCODE_SESSION_READER
+if ([string]::IsNullOrWhiteSpace($reader)) {
+  $liveSkill = Join-Path $HOME ".agents/skills/session-catch-vscode/SKILL.md"
+  $skill = Get-Item -LiteralPath $liveSkill -Force -ErrorAction Stop
+  if ($skill.LinkType -ne "SymbolicLink") {
+    throw "Set VSCODE_SESSION_READER to the full path of vscode-session-reader.py."
+  }
+
+  $target = [string]$skill.Target
+  if (-not [System.IO.Path]::IsPathRooted($target)) {
+    $target = Join-Path $skill.DirectoryName $target
+  }
+
+  $canonicalSkill = (Resolve-Path -LiteralPath $target -ErrorAction Stop).Path
+  $repo = Split-Path -Parent (Split-Path -Parent $canonicalSkill)
+  $reader = Join-Path $repo "scripts/vscode-session-reader.py"
+}
+
+if (-not (Test-Path -LiteralPath $reader -PathType Leaf)) {
+  throw "VS Code session reader not found at '$reader'. Set VSCODE_SESSION_READER explicitly."
+}
+```
+
+Set the workspace path explicitly and save the newest-first session list to a scratch file:
+
+```powershell
 $workspace = "<WORKSPACE_PATH>"
 $outDir = Join-Path $workspace "tmp/session-catch-vscode"
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
@@ -1295,8 +1321,8 @@ processed:
   - repeated executable procedure → script or SKILL;
   - local rationale or design decision → code comment or README;
   - stable deterministic invariant that is cheaply enforceable →
-    assertion, test, type, or validation schema; do not use AI as a
-    unit-test engine;
+    assertion, test, type, or validation schema; **do not use AI as a
+    unit-test engine;**
 - important but still-uncertain notes are kept in MEMORY with explicit
   provenance and scope.
 
