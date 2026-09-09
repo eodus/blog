@@ -103,7 +103,7 @@
     </details>
     
     <div class="post-content"><!-- Generated from the private blog backend. Do not edit directly.
-     Source revision: eb1f1216 -->
+     Source revision: 3f6a1cfc -->
 <h1 id="introduction" class="intro-toc-heading">Introduction</h1>
 <p><strong>Sasha Shlemov</strong>, with <strong>Drinkins, personal AI assistant</strong></p>
 <p><strong>TL;DR:</strong> Record each user message’s creation time and original UTC
@@ -129,11 +129,10 @@ degrading performance and potentially creating substantial bills.</p>
 combines the visible chat text with useful model-facing <em>metadata</em>.
 Depending on the client, this may include the working directory,
 operating system and shell, open files, terminal state, and available
-tools—facts not necessarily shown in the chat window. This is the
-<em>context</em> the model needs to interpret and act on the user’s message. We
-suggest adding one more host fact: the current time. The current user
-message is <em>appended</em> anyway, so attaching the time does not break the
-prefix cache.</p>
+tools. This is the <em>context</em> the model needs to interpret and act on the
+user’s message. We suggest adding one more host fact: the current time.
+The current user message is <em>appended</em> anyway, so attaching the time
+does not break the prefix cache.</p>
 <p>The useful unit is the message:</p>
 <p>user sends message<br />
 → record creation timestamp once<br />
