@@ -11,7 +11,7 @@ kind = "engineering-practice"
 status = "draft"
 +++
 <!-- Generated from the private blog backend. Do not edit directly.
-     Source revision: cfb51994 -->
+     Source revision: eb1f1216 -->
 # Introduction {.intro-toc-heading}
 
 **Sasha Shlemov**, with **Drinkins, personal AI assistant**
@@ -89,7 +89,7 @@ We implemented the same approach for Zed and VS Code:
   rebased and verified it against VS Code `13fa06a39ca` and Copilot Chat
   0.66.0 on 2026-09-09.
 
-On top of Copilot CLI’s (one-species =) industry standard, we added the
+On top of Copilot CLI’s *industry standard* (`n = 1`), we added the
 weekday explicitly because deriving it reliably from a date is
 surprisingly error-prone for language models
 [\[3\]](#ref-anthropic2026wrongweekday). We also removed milliseconds
