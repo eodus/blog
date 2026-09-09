@@ -24,7 +24,7 @@
         <id>https://eodus.github.io/blog/posts/give-your-ai-a-watch/</id>
         
         <content type="html" xml:base="https://eodus.github.io/blog/posts/give-your-ai-a-watch/">&lt;!-- Generated from the private blog backend. Do not edit directly.
-     Source revision: cfb51994 --&gt;
+     Source revision: eb1f1216 --&gt;
 &lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
 &lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; Record each user message’s creation time and original UTC
@@ -91,7 +91,7 @@ rebased and verified it against VS Code &lt;code&gt;13fa06a39ca&lt;&#x2F;code&gt
 0.66.0 on 2026-09-09.&lt;&#x2F;p&gt;
 &lt;&#x2F;li&gt;
 &lt;&#x2F;ul&gt;
-&lt;p&gt;On top of Copilot CLI’s (one-species =) industry standard, we added the
+&lt;p&gt;On top of Copilot CLI’s &lt;em&gt;industry standard&lt;&#x2F;em&gt; (&lt;code&gt;n = 1&lt;&#x2F;code&gt;), we added the
 weekday explicitly because deriving it reliably from a date is
 surprisingly error-prone for language models
 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-anthropic2026wrongweekday&quot;&gt;[3]&lt;&#x2F;a&gt;. We also removed milliseconds
