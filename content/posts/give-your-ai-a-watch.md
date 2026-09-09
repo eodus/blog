@@ -11,7 +11,7 @@ kind = "engineering-practice"
 status = "draft"
 +++
 <!-- Generated from the private blog backend. Do not edit directly.
-     Source revision: eb1f1216 -->
+     Source revision: 3f6a1cfc -->
 # Introduction {.intro-toc-heading}
 
 **Sasha Shlemov**, with **Drinkins, personal AI assistant**
@@ -43,11 +43,10 @@ On each turn, an AI client such as ChatGPT, VS Code, or Copilot CLI
 combines the visible chat text with useful model-facing *metadata*.
 Depending on the client, this may include the working directory,
 operating system and shell, open files, terminal state, and available
-tools—facts not necessarily shown in the chat window. This is the
-*context* the model needs to interpret and act on the user’s message. We
-suggest adding one more host fact: the current time. The current user
-message is *appended* anyway, so attaching the time does not break the
-prefix cache.
+tools. This is the *context* the model needs to interpret and act on the
+user’s message. We suggest adding one more host fact: the current time.
+The current user message is *appended* anyway, so attaching the time
+does not break the prefix cache.
 
 The useful unit is the message:
 
