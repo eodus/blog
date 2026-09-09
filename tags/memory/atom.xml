@@ -23,7 +23,9 @@
         <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/ai-mid-memory/"/>
         <id>https://eodus.github.io/blog/posts/ai-mid-memory/</id>
         
-        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: 38f6b859 --&gt;
+&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
 &lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; We present a cross-session continuity mechanism and a
 pipeline for accumulating, curating, reusing, and selectively promoting

@@ -11,6 +11,10 @@
         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
+        <loc>https://eodus.github.io/blog/posts/give-your-ai-a-watch/</loc>
+        <lastmod>2026-09-09</lastmod>
+    </url>
+    <url>
         <loc>https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/</loc>
         <lastmod>2026-08-05</lastmod>
     </url>
@@ -43,5 +47,8 @@
     </url>
     <url>
         <loc>https://eodus.github.io/blog/tags/working-practices/</loc>
+    </url>
+    <url>
+        <loc>https://eodus.github.io/blog/tags/zed/</loc>
     </url>
 </urlset>

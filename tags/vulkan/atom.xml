@@ -23,7 +23,9 @@
         <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/"/>
         <id>https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/</id>
         
-        <content type="html" xml:base="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/">&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/llm-binarization-episode-01-dbf/">&lt;!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: 38f6b859 --&gt;
+&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
 &lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt; ·
 &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;eodus&#x2F;sign1-llama.cpp&quot;&gt;Runtime&lt;&#x2F;a&gt; · &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;eodus&#x2F;dbf-sign1&quot;&gt;Scripts and
 results&lt;&#x2F;a&gt; ·
@@ -135,7 +137,7 @@ but that path is slower than Vulkan on this machine);&lt;&#x2F;li&gt;
 most practical target, but because it opens another part of the
 design space.&lt;&#x2F;li&gt;
 &lt;&#x2F;ol&gt;
-&lt;h2 id=&quot;1-the-representation&quot;&gt;1. The representation&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;1-the-representation&quot;&gt;1. The representation&lt;&#x2F;h1&gt;
 &lt;p&gt;A conventional dense linear layer computes&lt;&#x2F;p&gt;
 &lt;pre&gt;&lt;code&gt;y = W x,
 &lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
@@ -193,7 +195,7 @@ parameterize a small codebook. DBF instead approximates the matrix as a
 linear operator, using two learned binary maps and explicit diagonal
 magnitude channels. It is not merely another way to pack two bits per
 weight.&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;1-1-bit-budget&quot;&gt;1.1 Bit budget&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;1-1-bit-budget&quot;&gt;1.1 Bit budget&lt;&#x2F;h2&gt;
 &lt;p&gt;The storage budget is transparent. Ignoring byte alignment for the
 moment, the two binary factors require&lt;&#x2F;p&gt;
 &lt;pre&gt;&lt;code&gt;r·n + m·r
@@ -233,7 +235,7 @@ two and divisible by the natural packing, SIMD, subgroup, and
 matrix-tile widths used by current CPU and GPU hardware. That removes
 padding and tail handling from the main contraction and makes
 specialized kernels substantially cleaner.&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;1-2-what-we-inherit-from-dbf&quot;&gt;1.2 What we inherit from DBF&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;1-2-what-we-inherit-from-dbf&quot;&gt;1.2 What we inherit from DBF&lt;&#x2F;h2&gt;
 &lt;p&gt;We start from the fixed-dimension factorization core described by Boža
 and Macko &lt;a href=&quot;#ref-boza2026dbf&quot;&gt;[3]&lt;&#x2F;a&gt; and implemented in their public
 Llama3 notebook at
@@ -279,7 +281,7 @@ building the complete inference stack around it.&lt;&#x2F;p&gt;
 &lt;p&gt;DBF is therefore the foundation of this implementation, not the final
 algorithm for every rank and tensor. The representation may outlive this
 particular optimizer.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;2-why-implement-it-in-llama-cpp&quot;&gt;2. Why implement it in llama.cpp?&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;2-why-implement-it-in-llama-cpp&quot;&gt;2. Why implement it in llama.cpp?&lt;&#x2F;h1&gt;
 &lt;p&gt;A Python reconstruction answers an important but narrow question: does
 the factorization approximate an individual matrix? We wanted answers
 about a usable model, in this order:&lt;&#x2F;p&gt;
@@ -309,7 +311,7 @@ implemented only in our experimental runner would demonstrate
 possibility. A format implemented in llama.cpp can be downloaded,
 benchmarked, compared with existing quantizers, and extended by the
 people who already maintain those backends.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;3-a-real-one-bit-tensor-type&quot;&gt;3. A real one-bit tensor type&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;3-a-real-one-bit-tensor-type&quot;&gt;3. A real one-bit tensor type&lt;&#x2F;h1&gt;
 &lt;p&gt;llama.cpp already has Q1_0, and our first prototype used it as a sign
 carrier. We separated SIGN1 for three reasons. Q1_0 is a quantization
 format with its own block scaling and execution contract; DBF already
@@ -337,7 +339,7 @@ runtime would still need the custom &lt;code&gt;D_in -&amp;gt; V -&amp;gt; D_mid
 graph, routed scaler handling, and architecture-specific kernel
 dispatch. Q1_0 can disguise the storage type; it cannot make DBDBD a
 stock model architecture.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;4-teaching-the-model-loader-dbdbd&quot;&gt;4. Teaching the model loader DBDBD&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;4-teaching-the-model-loader-dbdbd&quot;&gt;4. Teaching the model loader DBDBD&lt;&#x2F;h1&gt;
 &lt;p&gt;For each routed expert projection, the model may contain five tensors:&lt;&#x2F;p&gt;
 &lt;pre&gt;&lt;code&gt;projection_din
 projection_v
@@ -390,7 +392,7 @@ conversion can be amortized across columns. Generation usually applies
 that matrix to one vector at a time. The same arithmetic therefore
 belongs to two different kernel regimes: MMQ for many vectors and MMV
 for one.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;5-vulkan-where-the-representation-became-practical&quot;&gt;5. Vulkan: where the representation became practical&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;5-vulkan-where-the-representation-became-practical&quot;&gt;5. Vulkan: where the representation became practical&lt;&#x2F;h1&gt;
 &lt;p&gt;Vulkan is the backend we optimized seriously because it is the fastest
 llama.cpp backend for this model and workload on our Strix Halo.&lt;&#x2F;p&gt;
 &lt;p&gt;An efficient matrix multiplication kernel is far beyond the high-school
@@ -537,14 +539,14 @@ rather than porting our winner blindly. The final race on Halo was
 close, and small changes in work ownership repeatedly reversed
 apparently obvious conclusions. In particular, test several
 row&#x2F;column&#x2F;workgroup regimes.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;6-cpu-a-portable-baseline&quot;&gt;6. CPU: a portable baseline&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;6-cpu-a-portable-baseline&quot;&gt;6. CPU: a portable baseline&lt;&#x2F;h1&gt;
 &lt;p&gt;The CPU path quantizes activations to Q8, applies packed signs during
 the dot product, and uses AVX2 or AVX-512 when available. The AVX-512
 prompt path repacks eight output rows together and evaluates several
 input vectors per call; AVX2 provides the narrower vector path, with a
 scalar implementation as the correctness fallback. It is functional and
 tested, but not the performance focus here.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;7-cuda-hip-a-starting-point-not-a-polished-backend&quot;&gt;7. CUDA&#x2F;HIP: a starting point, not a polished backend&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;7-cuda-hip-a-starting-point-not-a-polished-backend&quot;&gt;7. CUDA&#x2F;HIP: a starting point, not a polished backend&lt;&#x2F;h1&gt;
 &lt;p&gt;We wired SIGN1 and routed DBF scalers through llama.cpp’s CUDA-source
 MMV&#x2F;MMQ implementation and tested that code through HIP on our AMD
 machine. The full model runs correctly, although HIP currently retains a
@@ -582,7 +584,7 @@ data local.&lt;&#x2F;li&gt;
 &lt;p&gt;These are hypotheses, not CUDA performance claims. The Vulkan
 implementation establishes the baseline; a native CUDA port has a richer
 synchronization model with which to challenge it.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;8-current-measurements&quot;&gt;8. Current measurements&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;8-current-measurements&quot;&gt;8. Current measurements&lt;&#x2F;h1&gt;
 &lt;p&gt;The final Vulkan comparison uses the faithful DBF weights and the same
 tensor shapes, storage layout, and nominal operation count as the
 earlier runtime controls. We nevertheless reran speed with the exact
@@ -641,19 +643,19 @@ report both the mean improvement and the number of matrices on which DBF
 wins. Spectral norms use fixed-seed 32-iteration power iteration. The
 full model-level PPL then tests whether those approximation gains
 survive inference.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;9-open-questions-and-the-next-episodes&quot;&gt;9. Open questions and the next episodes&lt;&#x2F;h2&gt;
-&lt;h3 id=&quot;9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired&quot;&gt;9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?&lt;&#x2F;h3&gt;
+&lt;h1 id=&quot;9-open-questions-and-the-next-episodes&quot;&gt;9. Open questions and the next episodes&lt;&#x2F;h1&gt;
+&lt;h2 id=&quot;9-1-dbf-is-reported-to-struggle-at-larger-bit-budgets-can-that-regime-be-repaired&quot;&gt;9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?&lt;&#x2F;h2&gt;
 &lt;p&gt;The original method is especially strong at very low budgets. As the
 intermediate dimension grows, the alternating problem becomes
 increasingly overcomplete and difficult to optimize. Is that a
 fundamental limitation of the representation, or a limitation of the
 continuation&#x2F;projection algorithm?&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;9-2-can-one-structural-method-cover-all-important-model-matrices&quot;&gt;9.2 Can one structural method cover all important model matrices?&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;9-2-can-one-structural-method-cover-all-important-model-matrices&quot;&gt;9.2 Can one structural method cover all important model matrices?&lt;&#x2F;h2&gt;
 &lt;p&gt;Routed FFN experts are only part of an LLM. Attention projections,
 shared experts, routers, embeddings, and the language-model head have
 different shapes and sensitivities. Can we move from “binary experts” to
 a model that is genuinely binary in the meaningful weight-storage sense?&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense&quot;&gt;9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;9-3-can-dbf-acquire-discrete-activations-and-become-bitnet-in-the-literal-sense&quot;&gt;9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?&lt;&#x2F;h2&gt;
 &lt;p&gt;Classical binary-network work, including BitNet-style systems, combines
 discrete weights with discrete or highly constrained activations. Our
 current implementation has a binary weight core but still enters and
@@ -662,7 +664,7 @@ leaves through floating-point values and floating diagonal scales.&lt;&#x2F;p&gt
 rather than a backend-private optimization? Can the complete linear core
 operate on packed bits and integer accumulation while preserving model
 quality?&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;9-4-which-matrix-error-should-we-optimize&quot;&gt;9.4 Which matrix error should we optimize?&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;9-4-which-matrix-error-should-we-optimize&quot;&gt;9.4 Which matrix error should we optimize?&lt;&#x2F;h2&gt;
 &lt;p&gt;The practical answer may be: neither ordinary Frobenius nor ordinary
 spectral norm. Inference does not feed the matrix isotropic random
 vectors or worst-case adversarial vectors; it feeds activations drawn
@@ -685,7 +687,7 @@ Episode One because we wanted to cut it.&lt;&#x2F;p&gt;
 not which norm has the most attractive interpretation, but which
 objective produces the best deployed model at the same storage and
 runtime budget.&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;9-5-how-much-evaluation-is-enough&quot;&gt;9.5 How much evaluation is enough?&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;9-5-how-much-evaluation-is-enough&quot;&gt;9.5 How much evaluation is enough?&lt;&#x2F;h2&gt;
 &lt;p&gt;This post uses one full WikiText-2 perplexity run as the first
 model-level quality gate. That is enough for a pilot comparison, not a
 complete capability evaluation. A later performance post should widen
@@ -709,7 +711,7 @@ one quantization comparison into a leaderboard.&lt;&#x2F;li&gt;
 &lt;p&gt;The purpose is not to manufacture one aggregate score. It is to find
 whether the representation changes only average language modeling loss
 or damages a particular capability that PPL hides.&lt;&#x2F;p&gt;
-&lt;h3 id=&quot;9-6-does-the-result-transfer-to-more-interesting-models&quot;&gt;9.6 Does the result transfer to more interesting models?&lt;&#x2F;h3&gt;
+&lt;h2 id=&quot;9-6-does-the-result-transfer-to-more-interesting-models&quot;&gt;9.6 Does the result transfer to more interesting models?&lt;&#x2F;h2&gt;
 &lt;p&gt;Qwen3.6-35B-A3B is a practical controlled battlefield, not the final
 target. The next useful test is whether the same representation and
 kernel ideas survive larger expert dimensions, different routing
@@ -737,7 +739,7 @@ belongs to a multi-node follow-up, not the first transfer test.&lt;&#x2F;p&gt;
 representation that wins only on one convenient Qwen geometry is a
 useful kernel experiment; one that transfers across Qwen, GLM, MiniMax,
 and DeepSeek begins to look like a general post-training binary format.&lt;&#x2F;p&gt;
-&lt;h2 id=&quot;10-reproducibility&quot;&gt;10. Reproducibility&lt;&#x2F;h2&gt;
+&lt;h1 id=&quot;10-reproducibility&quot;&gt;10. Reproducibility&lt;&#x2F;h1&gt;
 &lt;p&gt;The public release includes:&lt;&#x2F;p&gt;
 &lt;ul&gt;
 &lt;li&gt;the minimal rebased llama.cpp branch;&lt;&#x2F;li&gt;

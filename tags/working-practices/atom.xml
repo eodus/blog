@@ -5,8 +5,266 @@
     <link rel="self" type="application/atom+xml" href="https://eodus.github.io/blog/tags/working-practices/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://eodus.github.io/blog"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-08-29T00:00:00+00:00</updated>
+    <updated>2026-09-09T00:00:00+00:00</updated>
     <id>https://eodus.github.io/blog/tags/working-practices/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Give Your AI a Watch</title>
+        <published>2026-09-09T00:00:00+00:00</published>
+        <updated>2026-09-09T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/give-your-ai-a-watch/"/>
+        <id>https://eodus.github.io/blog/posts/give-your-ai-a-watch/</id>
+        
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/give-your-ai-a-watch/">&lt;!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: cfb51994 --&gt;
+&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+&lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; Record each user message’s creation time and original UTC
+offset once, persist it with the thread, and supply it beside that
+message. Keep the changing clock out of the system prompt. This gives
+the AI chronology without repeatedly invalidating the prompt cache.&lt;&#x2F;p&gt;
+&lt;p&gt;That sounds cosmetic until a session lasts longer than one coffee. “The
+build is still running” means something different after 30 seconds and
+after three hours. “Tomorrow” changes overnight. “This morning” depends
+on the user’s timezone. Without message times, neither the AI nor a
+later investigator can distinguish a pause from a retry or a stalled
+process.&lt;&#x2F;p&gt;
+&lt;p&gt;An agent definitely &lt;em&gt;can&lt;&#x2F;em&gt; check the time using a tool. In practice, it
+does so &lt;em&gt;reluctantly&lt;&#x2F;em&gt;: the model must first notice that time matters and
+request the tool; the client executes it, attaches the tool call
+&lt;code&gt;output&lt;&#x2F;code&gt;, and sends another request. Every such tool loop adds latency
+and cost, and the model is &lt;em&gt;trained&lt;&#x2F;em&gt; to avoid it.&lt;&#x2F;p&gt;
+&lt;p&gt;Adding the current time to the system prompt has the opposite problem.
+The system prompt is the beginning of the reusable server-side KV-cache;
+changing it on every turn invalidates the cached conversation history,
+degrading performance and potentially creating substantial bills.&lt;&#x2F;p&gt;
+&lt;p&gt;On each turn, an AI client such as ChatGPT, VS Code, or Copilot CLI
+combines the visible chat text with useful model-facing &lt;em&gt;metadata&lt;&#x2F;em&gt;.
+Depending on the client, this may include the working directory,
+operating system and shell, open files, terminal state, and available
+tools—facts not necessarily shown in the chat window. This is the
+&lt;em&gt;context&lt;&#x2F;em&gt; the model needs to interpret and act on the user’s message. We
+suggest adding one more host fact: the current time. The current user
+message is &lt;em&gt;appended&lt;&#x2F;em&gt; anyway, so attaching the time does not break the
+prefix cache.&lt;&#x2F;p&gt;
+&lt;p&gt;The useful unit is the message:&lt;&#x2F;p&gt;
+&lt;p&gt;user sends message&lt;br &#x2F;&gt;
+→ record creation timestamp once&lt;br &#x2F;&gt;
+→ persist it with the thread&lt;br &#x2F;&gt;
+→ include it in that message’s context forever&lt;br &#x2F;&gt;
+→ prefix is naturally &lt;em&gt;accumulated&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;One mainstream agent already ships it. &lt;strong&gt;GitHub Copilot CLI is the only
+prior per-turn date&#x2F;time&#x2F;offset implementation we found.&lt;&#x2F;strong&gt; It has
+supplied per-turn date, time, and local UTC offset since version 1.0.32
+on 2026-04-17 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-github2026copilotclitime&quot;&gt;[1]&lt;&#x2F;a&gt;. Local
+model-request logs from current version 1.0.83 show this as the first
+block of the captured user message:&lt;&#x2F;p&gt;
+&lt;pre&gt;&lt;code data-lang=&quot;xml&quot;&gt;&amp;lt;current_datetime&amp;gt;2026-09-09T22:02:57.364+02:00&amp;lt;&#x2F;current_datetime&amp;gt;
+&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;We implemented the same approach for Zed and VS Code:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Zed:&lt;&#x2F;strong&gt; try
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;zed-industries&#x2F;zed&#x2F;pull&#x2F;63987&quot;&gt;zed-industries&#x2F;zed#63987&lt;&#x2F;a&gt;
+and leave us a 👍 if it is useful. The patch persists each new
+user-message timestamp and applies the established per-turn pattern in
+this compact form:&lt;&#x2F;p&gt;
+&lt;pre&gt;&lt;code data-lang=&quot;xml&quot;&gt;&amp;lt;time&amp;gt;Wed 2026-09-09T01:22:58+02:00&amp;lt;&#x2F;time&amp;gt;
+&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;VS Code:&lt;&#x2F;strong&gt; the earlier feature request remains at
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;microsoft&#x2F;vscode&#x2F;issues&#x2F;314377&quot;&gt;microsoft&#x2F;vscode#314377&lt;&#x2F;a&gt;.
+The &lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;patches&#x2F;vscode-time-context.patch&quot;&gt;implementation
+patch&lt;&#x2F;a&gt;
+adds configurable time, weekday, and timezone to VS Code’s existing
+per-turn date context &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-shlemov2026vscodetimepatch&quot;&gt;[2]&lt;&#x2F;a&gt;. We
+rebased and verified it against VS Code &lt;code&gt;13fa06a39ca&lt;&#x2F;code&gt; and Copilot Chat
+0.66.0 on 2026-09-09.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;On top of Copilot CLI’s (one-species =) industry standard, we added the
+weekday explicitly because deriving it reliably from a date is
+surprisingly error-prone for language models
+&lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-anthropic2026wrongweekday&quot;&gt;[3]&lt;&#x2F;a&gt;. We also removed milliseconds
+from the model-facing message because their usefulness there is
+questionable.&lt;&#x2F;p&gt;
+&lt;h1 id=&quot;use-the-coordinate&quot;&gt;Use the coordinate&lt;&#x2F;h1&gt;
+&lt;p&gt;Supplying time does not decide what the agent should do with it. That
+belongs in the user’s operating contract. For example:&lt;&#x2F;p&gt;
+&lt;pre&gt;&lt;code data-lang=&quot;markdown&quot;&gt;Use message timestamps when interpreting relative expressions such as
+“today,” “tomorrow,” “this morning,” and “later.” Use the recorded UTC
+offset rather than assuming the user&amp;#39;s timezone.
+
+When resuming after a substantial gap, revalidate volatile state: running
+processes, branches, credentials, browser sessions, files, and external jobs
+may have changed. Do not infer elapsed tool runtime from conversational turn
+count; inspect process or log evidence when duration matters.
+&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Or, for a personal schedule:&lt;&#x2F;p&gt;
+&lt;pre&gt;&lt;code data-lang=&quot;markdown&quot;&gt;My schedule rules are defined separately. Apply them only when message time
+actually satisfies their conditions; do not guess that it is late, a workday,
+or time for a break.
+&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h1 id=&quot;vox-intelligentiae-artificialis&quot;&gt;&lt;em&gt;Vox intelligentiae artificialis&lt;&#x2F;em&gt;&lt;&#x2F;h1&gt;
+&lt;p&gt;As an AI assistant, I already know what to do with time and how to
+interpret it. Just give it to me.&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;A calendar tells an AI what year it is. A watch lets it participate
+in a process.&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;footer class=&quot;quote-attribution&quot;&gt;
+&lt;p&gt;&lt;cite&gt;Drinkins, AI assistant&lt;&#x2F;cite&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;footer&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;h1 id=&quot;references&quot;&gt;References&lt;&#x2F;h1&gt;
+&lt;div id=&quot;refs&quot; class=&quot;references csl-bib-body&quot; data-entry-spacing=&quot;0&quot;&gt;
+&lt;div id=&quot;ref-github2026copilotclitime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[1]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;GitHub, &lt;em&gt;GitHub Copilot CLI
+per-turn current datetime context&lt;&#x2F;em&gt;. (Apr. 17, 2026). Accessed: Sep. 09,
+2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;github&#x2F;copilot-cli&#x2F;blob&#x2F;main&#x2F;changelog.md&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;github&#x2F;copilot-cli&#x2F;blob&#x2F;main&#x2F;changelog.md&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-shlemov2026vscodetimepatch&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[2]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;S. Shlemov and Drinkins, &lt;em&gt;VS Code
+configurable time, weekday, and timezone patch&lt;&#x2F;em&gt;. (Sep. 09, 2026).
+Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;patches&#x2F;vscode-time-context.patch&quot;&gt;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;patches&#x2F;vscode-time-context.patch&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-anthropic2026wrongweekday&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[3]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;&lt;span class=&quot;nocase&quot;&gt;plee7&lt;&#x2F;span&gt;,
+“Model confidently stated wrong weekday for a date.” Accessed: Sep. 09,
+2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;76170&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;76170&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-welle2025chatgpttime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[4]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;E. Welle, “Why can’t ChatGPT tell
+time?” Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;www.theverge.com&#x2F;report&#x2F;829137&#x2F;openai-chatgpt-time-date&quot;&gt;https:&#x2F;&#x2F;www.theverge.com&#x2F;report&#x2F;829137&#x2F;openai-chatgpt-time-date&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-anthropic2026claudewebtime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[5]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Anthropic, “System prompts for
+claude web and mobile apps.” Accessed: Sep. 09, 2026. [Online].
+Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;platform.claude.com&#x2F;docs&#x2F;en&#x2F;release-notes&#x2F;system-prompts&#x2F;overview&quot;&gt;https:&#x2F;&#x2F;platform.claude.com&#x2F;docs&#x2F;en&#x2F;release-notes&#x2F;system-prompts&#x2F;overview&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-deepseek2025webtime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[6]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;DeepSeek-AI, “DeepSeek-V3-0324
+usage recommendations.” Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;deepseek-ai&#x2F;DeepSeek-V3-0324&quot;&gt;https:&#x2F;&#x2F;huggingface.co&#x2F;deepseek-ai&#x2F;DeepSeek-V3-0324&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-openai2026codextime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[7]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;OpenAI, &lt;em&gt;Codex CLI environment
+context&lt;&#x2F;em&gt;. (2026). Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;openai&#x2F;codex&#x2F;blob&#x2F;9caddc5cf5bf4df5f114498e23bece90eaedb37b&#x2F;codex-rs&#x2F;core&#x2F;src&#x2F;context&#x2F;world_state&#x2F;environment.rs&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;openai&#x2F;codex&#x2F;blob&#x2F;9caddc5cf5bf4df5f114498e23bece90eaedb37b&#x2F;codex-rs&#x2F;core&#x2F;src&#x2F;context&#x2F;world_state&#x2F;environment.rs&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-anthropic2026notime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[8]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;&lt;span class=&quot;nocase&quot;&gt;wshallwshall&lt;&#x2F;span&gt;,
+“No local time or timezone in context.” Accessed: Sep. 09, 2026.
+[Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;84145&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;84145&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-anthropic2026longsessions&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[9]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;&lt;span class=&quot;nocase&quot;&gt;jontwigge&lt;&#x2F;span&gt;,
+“Long sessions drift days past the session-start date.” Accessed: Sep.
+09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;73800&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;anthropics&#x2F;claude-code&#x2F;issues&#x2F;73800&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-google2026geminitime&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[10]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Google, &lt;em&gt;Gemini CLI environment
+context&lt;&#x2F;em&gt;. (2026). Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;google-gemini&#x2F;gemini-cli&#x2F;blob&#x2F;ed2ac40df67a319bf348bd7e3d10494696b31b38&#x2F;packages&#x2F;core&#x2F;src&#x2F;utils&#x2F;environmentContext.ts&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;google-gemini&#x2F;gemini-cli&#x2F;blob&#x2F;ed2ac40df67a319bf348bd7e3d10494696b31b38&#x2F;packages&#x2F;core&#x2F;src&#x2F;utils&#x2F;environmentContext.ts&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-zed2026agentprompt&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[11]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Zed Industries and contributors,
+&lt;em&gt;Zed Agent System-Prompt Assembly&lt;&#x2F;em&gt;. (2026). Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;zed-industries&#x2F;zed&#x2F;blob&#x2F;52b2927a1bac46be5d50ad341ac00b665e13764b&#x2F;crates&#x2F;agent&#x2F;src&#x2F;thread.rs&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;zed-industries&#x2F;zed&#x2F;blob&#x2F;52b2927a1bac46be5d50ad341ac00b665e13764b&#x2F;crates&#x2F;agent&#x2F;src&#x2F;thread.rs&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-zed2026threaddb&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[12]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Zed Industries and contributors,
+&lt;em&gt;Zed Agent Thread Database&lt;&#x2F;em&gt;. (2026). Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;zed-industries&#x2F;zed&#x2F;blob&#x2F;52b2927a1bac46be5d50ad341ac00b665e13764b&#x2F;crates&#x2F;agent&#x2F;src&#x2F;db.rs&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;zed-industries&#x2F;zed&#x2F;blob&#x2F;52b2927a1bac46be5d50ad341ac00b665e13764b&#x2F;crates&#x2F;agent&#x2F;src&#x2F;db.rs&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-microsoft2026vscodeagentprompt&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[13]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Microsoft and VS Code
+contributors, &lt;em&gt;VS Code Copilot Agent Prompt Assembly&lt;&#x2F;em&gt;. (2026).
+Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;microsoft&#x2F;vscode&#x2F;blob&#x2F;13fa06a39cabd0b59ca007ffd356d14998b983ff&#x2F;extensions&#x2F;copilot&#x2F;src&#x2F;extension&#x2F;prompts&#x2F;node&#x2F;agent&#x2F;agentPrompt.tsx&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;microsoft&#x2F;vscode&#x2F;blob&#x2F;13fa06a39cabd0b59ca007ffd356d14998b983ff&#x2F;extensions&#x2F;copilot&#x2F;src&#x2F;extension&#x2F;prompts&#x2F;node&#x2F;agent&#x2F;agentPrompt.tsx&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-opencode2026time&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[14]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;OpenCode contributors, &lt;em&gt;OpenCode
+system-prompt environment&lt;&#x2F;em&gt;. (2026). Accessed: Sep. 09, 2026. [Online].
+Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;anomalyco&#x2F;opencode&#x2F;blob&#x2F;9f8db119fcbd4999379129ac7734375ac23460fb&#x2F;packages&#x2F;opencode&#x2F;src&#x2F;session&#x2F;system.ts&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;anomalyco&#x2F;opencode&#x2F;blob&#x2F;9f8db119fcbd4999379129ac7734375ac23460fb&#x2F;packages&#x2F;opencode&#x2F;src&#x2F;session&#x2F;system.ts&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-continue2026time&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[15]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Continue contributors, &lt;em&gt;Continue
+CLI system message&lt;&#x2F;em&gt;. (2026). Accessed: Sep. 09, 2026. [Online].
+Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;continuedev&#x2F;continue&#x2F;blob&#x2F;5522c6f44ca0ac3528b37244818fbfa39b5af470&#x2F;extensions&#x2F;cli&#x2F;src&#x2F;systemMessage.ts&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;continuedev&#x2F;continue&#x2F;blob&#x2F;5522c6f44ca0ac3528b37244818fbfa39b5af470&#x2F;extensions&#x2F;cli&#x2F;src&#x2F;systemMessage.ts&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-aider2026time&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[16]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Aider contributors, &lt;em&gt;Aider
+platform information prompt&lt;&#x2F;em&gt;. (2026). Accessed: Sep. 09, 2026.
+[Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Aider-AI&#x2F;aider&#x2F;blob&#x2F;5dc9490bb35f9729ef2c95d00a19ccd30c26339c&#x2F;aider&#x2F;coders&#x2F;base_coder.py&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;Aider-AI&#x2F;aider&#x2F;blob&#x2F;5dc9490bb35f9729ef2c95d00a19ccd30c26339c&#x2F;aider&#x2F;coders&#x2F;base_coder.py&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;ref-cline2026timetool&quot; class=&quot;csl-entry&quot;&gt;
+&lt;p&gt;&lt;span class=&quot;csl-left-margin&quot;&gt;[17]
+&lt;&#x2F;span&gt;&lt;span class=&quot;csl-right-inline&quot;&gt;Cline, “Creating custom tools in
+the Cline SDK.” Accessed: Sep. 09, 2026. [Online]. Available:
+&lt;a rel=&quot;external&quot; href=&quot;https:&#x2F;&#x2F;github.com&#x2F;cline&#x2F;cline&#x2F;blob&#x2F;194214af76da43757ccacdf04c6fd487f8914ea1&#x2F;docs&#x2F;sdk&#x2F;guides&#x2F;creating-custom-tools.mdx&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;cline&#x2F;cline&#x2F;blob&#x2F;194214af76da43757ccacdf04c6fd487f8914ea1&#x2F;docs&#x2F;sdk&#x2F;guides&#x2F;creating-custom-tools.mdx&lt;&#x2F;a&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;h1 id=&quot;appendix-status-quo-in-popular-agent-harnesses-september-2026&quot;&gt;Appendix: &lt;em&gt;Status quo&lt;&#x2F;em&gt; in popular agent harnesses, September 2026&lt;&#x2F;h1&gt;
+&lt;p&gt;The table separates calendar context from a clock and stored timestamps
+from chronology actually shown to the model. “Not found” means exactly
+that in the inspected source and issues; it is not proof that a closed
+or newer path does not exist.&lt;&#x2F;p&gt;
+&lt;div class=&quot;qualitative-table&quot;&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Agent&lt;&#x2F;th&gt;&lt;th&gt;What the model receives automatically&lt;&#x2F;th&gt;&lt;th&gt;When and where&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;ChatGPT web (reported November 2025) &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-welle2025chatgpttime&quot;&gt;[4]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;No reliable current time; it may call Search&lt;&#x2F;td&gt;&lt;td&gt;Product behavior ranged from refusing through correct answers to confidently wrong times&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Claude.ai web &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-anthropic2026claudewebtime&quot;&gt;[5]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Current date, but no documented time or timezone&lt;&#x2F;td&gt;&lt;td&gt;System prompt created at the start of each conversation&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Google Gemini web (reported November 2025) &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-welle2025chatgpttime&quot;&gt;[4]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Current time through automatic search&lt;&#x2F;td&gt;&lt;td&gt;Tool-mediated lookup, not time included in every user turn&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;DeepSeek web&#x2F;app (V3-0324) &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-deepseek2025webtime&quot;&gt;[6]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Date and explicit weekday, but no documented time or timezone&lt;&#x2F;td&gt;&lt;td&gt;Dated system prompt documented by the official model card; later web versions remain unverified&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;GitHub Copilot CLI 1.0.83 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-github2026copilotclitime&quot;&gt;[1]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;ISO date, time, milliseconds, and UTC offset&lt;&#x2F;td&gt;&lt;td&gt;First block of the current user turn&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;OpenAI Codex CLI 0.153.4 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-openai2026codextime&quot;&gt;[7]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Current date and IANA timezone, but no wall-clock time or weekday&lt;&#x2F;td&gt;&lt;td&gt;User-role environment context; updates are emitted when the date or timezone snapshot changes&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Claude Code 2.1.220 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-anthropic2026notime&quot;&gt;[8]&lt;&#x2F;a&gt;, &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-anthropic2026longsessions&quot;&gt;[9]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Date, but no local time or timezone&lt;&#x2F;td&gt;&lt;td&gt;System prompt fixed at session start, so the date becomes stale in sessions crossing midnight; a &lt;code&gt;UserPromptSubmit&lt;&#x2F;code&gt; hook can add per-turn time&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Gemini CLI 0.59.0 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-google2026geminitime&quot;&gt;[10]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Localized weekday and date, but no time or timezone&lt;&#x2F;td&gt;&lt;td&gt;First user-role session context, refreshed on resume&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Zed 1.19.2 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-zed2026agentprompt&quot;&gt;[11]&lt;&#x2F;a&gt;, &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-zed2026threaddb&quot;&gt;[12]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Local date, but no time, weekday, offset, or message timestamp&lt;&#x2F;td&gt;&lt;td&gt;System prompt; our PR adds persisted per-user-message time&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;VS Code Copilot Chat 0.66.0 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-microsoft2026vscodeagentprompt&quot;&gt;[13]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Local ISO date, but no time, weekday, or offset&lt;&#x2F;td&gt;&lt;td&gt;Agent path uses per-turn user context; panel chat separately uses the system prompt; our patch extends the agent path&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;OpenCode 1.18.30 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-opencode2026time&quot;&gt;[14]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Local abbreviated weekday and date, but no time or offset&lt;&#x2F;td&gt;&lt;td&gt;System-prompt environment; stored event milliseconds are not shown to the model as chronology&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Continue CLI 1.5.47 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-continue2026time&quot;&gt;[15]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;UTC date, but no time, weekday, or timezone label&lt;&#x2F;td&gt;&lt;td&gt;Module-level system message fixed for the initialized process; local date can differ near midnight&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Aider 0.86.0 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-aider2026time&quot;&gt;[16]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;Local date, but no time, weekday, or offset&lt;&#x2F;td&gt;&lt;td&gt;System prompt and reminder construction&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;Cline CLI 0.0.13 &lt;a href=&quot;https:&#x2F;&#x2F;eodus.github.io&#x2F;blog&#x2F;posts&#x2F;give-your-ai-a-watch&#x2F;#ref-cline2026timetool&quot;&gt;[17]&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;&lt;td&gt;No automatic date or time found&lt;&#x2F;td&gt;&lt;td&gt;SDK documents how to add a custom time tool; stored &lt;code&gt;createdAt&lt;&#x2F;code&gt; projection remains unverified&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;&#x2F;tbody&gt;&lt;&#x2F;table&gt;
+&lt;&#x2F;div&gt;
+</content>
+        
+    </entry>
     <entry xml:lang="en">
         <title>AI Mid-Memory: From a Goldfish to a Personal Assistant Worth Naming</title>
         <published>2026-08-29T00:00:00+00:00</published>
@@ -23,7 +281,9 @@
         <link rel="alternate" type="text/html" href="https://eodus.github.io/blog/posts/ai-mid-memory/"/>
         <id>https://eodus.github.io/blog/posts/ai-mid-memory/</id>
         
-        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
+        <content type="html" xml:base="https://eodus.github.io/blog/posts/ai-mid-memory/">&lt;!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: 38f6b859 --&gt;
+&lt;h1 id=&quot;introduction&quot; class=&quot;intro-toc-heading&quot;&gt;Introduction&lt;&#x2F;h1&gt;
 &lt;p&gt;&lt;strong&gt;Sasha Shlemov&lt;&#x2F;strong&gt;, with &lt;strong&gt;Drinkins, personal AI assistant&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;strong&gt;TL;DR:&lt;&#x2F;strong&gt; We present a cross-session continuity mechanism and a
 pipeline for accumulating, curating, reusing, and selectively promoting
