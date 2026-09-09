@@ -10,6 +10,8 @@ tags = ["ai", "memory", "software-engineering", "working-practices"]
 kind = "engineering-practice"
 status = "article"
 +++
+<!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: 38f6b859 -->
 # Introduction {.intro-toc-heading}
 
 **Sasha Shlemov**, with **Drinkins, personal AI assistant**

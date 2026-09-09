@@ -11,7 +11,7 @@
       <summary>Contents</summary>
       <ul>
       {% for h in page.toc %}
-        <li>{% if h.children %}<details><summary><a href="#{{ h.id }}">{{ h.title }}</a></summary><ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a>{% if child.children %}<ul>{% for grandchild in child.children %}<li><a href="#{{ grandchild.id }}">{{ grandchild.title }}</a></li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul></details>{% else %}<a href="#{{ h.id }}">{{ h.title }}</a>{% endif %}</li>
+        <li>{% if h.children %}<details><summary><a href="#{% if h.id == "introduction" %}top{% else %}{{ h.id }}{% endif %}">{{ h.title }}</a></summary><ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a>{% if child.children %}<ul>{% for grandchild in child.children %}<li><a href="#{{ grandchild.id }}">{{ grandchild.title }}</a></li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul></details>{% else %}<a href="#{% if h.id == "introduction" %}top{% else %}{{ h.id }}{% endif %}">{{ h.title }}</a>{% endif %}</li>
       {% endfor %}
       </ul>
     </details>
@@ -23,7 +23,7 @@
     <strong>Contents</strong>
     <ul>
     {% for h in page.toc %}
-      <li>{% if h.children %}<details><summary><a href="#{{ h.id }}">{{ h.title }}</a></summary><ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a>{% if child.children %}<ul>{% for grandchild in child.children %}<li><a href="#{{ grandchild.id }}">{{ grandchild.title }}</a></li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul></details>{% else %}<a href="#{{ h.id }}">{{ h.title }}</a>{% endif %}</li>
+      <li>{% if h.children %}<details><summary><a href="#{% if h.id == "introduction" %}top{% else %}{{ h.id }}{% endif %}">{{ h.title }}</a></summary><ul>{% for child in h.children %}<li><a href="#{{ child.id }}">{{ child.title }}</a>{% if child.children %}<ul>{% for grandchild in child.children %}<li><a href="#{{ grandchild.id }}">{{ grandchild.title }}</a></li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul></details>{% else %}<a href="#{% if h.id == "introduction" %}top{% else %}{{ h.id }}{% endif %}">{{ h.title }}</a>{% endif %}</li>
     {% endfor %}
     </ul>
   </aside>

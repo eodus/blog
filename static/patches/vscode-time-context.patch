@@ -1,0 +1,398 @@
+From 2c6e02645126afd1d6db6e076f62542ec35449be Mon Sep 17 00:00:00 2001
+From: Sasha Shlemov <shlemovalex@gmail.com>
+Date: Wed, 9 Sep 2026 21:47:55 +0200
+Subject: [PATCH] feat(copilot): add configurable time context
+
+---
+ extensions/copilot/package.json               |  37 ++++
+ extensions/copilot/package.nls.json           |   3 +
+ .../prompts/common/currentDateContext.ts      |  75 ++++++++
+ .../common/test/currentDateContext.spec.ts    | 181 ++++++++++++++++++
+ .../prompts/node/agent/agentPrompt.tsx        |   9 +-
+ .../common/configurationService.ts            |   3 +
+ 6 files changed, 303 insertions(+), 5 deletions(-)
+ create mode 100644 extensions/copilot/src/extension/prompts/common/currentDateContext.ts
+ create mode 100644 extensions/copilot/src/extension/prompts/common/test/currentDateContext.spec.ts
+
+diff --git a/extensions/copilot/package.json b/extensions/copilot/package.json
+index fe1ed2b418b..d73d8d1432e 100644
+--- a/extensions/copilot/package.json
++++ b/extensions/copilot/package.json
+@@ -4724,6 +4724,43 @@
+               "experimental"
+             ]
+           },
++          "github.copilot.chat.advanced.context.timeFormat": {
++            "type": "string",
++            "default": "off",
++            "enum": [
++              "off",
++              "24h",
++              "12h"
++            ],
++            "enumDescriptions": [
++              "Do not include current time",
++              "24-hour format (e.g., 23:06:32)",
++              "12-hour format (e.g., 11:06:32 PM)"
++            ],
++            "markdownDescription": "%github.copilot.config.advanced.context.timeFormat%",
++            "tags": [
++              "advanced",
++              "experimental"
++            ]
++          },
++          "github.copilot.chat.advanced.context.showWeekday": {
++            "type": "boolean",
++            "default": false,
++            "markdownDescription": "%github.copilot.config.advanced.context.showWeekday%",
++            "tags": [
++              "advanced",
++              "experimental"
++            ]
++          },
++          "github.copilot.chat.advanced.context.showTimezone": {
++            "type": "boolean",
++            "default": false,
++            "markdownDescription": "%github.copilot.config.advanced.context.showTimezone%",
++            "tags": [
++              "advanced",
++              "experimental"
++            ]
++          },
+           "github.copilot.chat.agent.omitFileAttachmentContents": {
+             "type": "boolean",
+             "default": false,
+diff --git a/extensions/copilot/package.nls.json b/extensions/copilot/package.nls.json
+index ac26cd0afcf..24105db2609 100644
+--- a/extensions/copilot/package.nls.json
++++ b/extensions/copilot/package.nls.json
+@@ -398,6 +398,9 @@
+ 	"github.copilot.config.inlineEdits.chatSessionContextProvider.enabled": "Enable chat session context provider for next edit suggestions.",
+ 	"github.copilot.config.codesearch.agent.enabled": "Enable code search capabilities in agent mode.",
+ 	"github.copilot.config.agent.temperature": "Temperature setting for agent mode requests.",
++	"github.copilot.config.advanced.context.timeFormat": "Include the current time in the date context provided to the model. Choose between 24-hour and 12-hour format, or disable.",
++	"github.copilot.config.advanced.context.showWeekday": "Include the day of the week in the date context provided to the model.",
++	"github.copilot.config.advanced.context.showTimezone": "Include the timezone offset (e.g., GMT+2) in the date context provided to the model. Only applies when `#github.copilot.chat.advanced.context.timeFormat#` is not \"off\".",
+ 	"github.copilot.config.agent.omitFileAttachmentContents": "Omit summarized file contents from file attachments in agent mode, to encourage the agent to properly read and explore.",
+ 	"github.copilot.config.agent.backgroundTodoAgent.enabled": "Enable background todo agent that automatically maintains a todo list during agent sessions.\n\n**Note**: This is an advanced experimental setting.",
+ 	"github.copilot.config.agent.longToolCallCachePreservation.enabled": "When enabled, periodic keep-alive probes are sent during long-running tool calls to keep the server-side prompt cache warm.",
+diff --git a/extensions/copilot/src/extension/prompts/common/currentDateContext.ts b/extensions/copilot/src/extension/prompts/common/currentDateContext.ts
+new file mode 100644
+index 00000000000..9819795e1e0
+--- /dev/null
++++ b/extensions/copilot/src/extension/prompts/common/currentDateContext.ts
+@@ -0,0 +1,75 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
++
++/**
++ * Formats the current date/time context string for inclusion in prompts.
++ * Respects user settings for time, weekday, and timezone display.
++ *
++ * Default (all settings off): "The current date is 2026-05-03."
++ * With all settings on: "The current date is Sunday, 2026-05-03. The current time is 23:06:32 GMT+2."
++ * Timezone is always in GMT±N offset format for consistency across all regions.
++ *
++ * timeFormat values: "off" (default), "24h", "12h"
++ */
++export function formatCurrentDateContext(configurationService: IConfigurationService): string {
++	const now = new Date();
++	const parts: string[] = [];
++	const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
++
++	parts.push('The current date is ');
++
++	if (configurationService.getConfig(ConfigKey.Advanced.ShowWeekday)) {
++		parts.push(now.toLocaleDateString('en-US', { weekday: 'long' }));
++		parts.push(', ');
++	}
++
++	parts.push(dateStr);
++	parts.push('.');
++
++	const timeFormat = configurationService.getConfig(ConfigKey.Advanced.TimeFormat);
++	if (timeFormat && timeFormat !== 'off') {
++		const hour12 = timeFormat === '12h';
++		const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12 });
++		parts.push(` The current time is ${timeStr}`);
++
++		if (configurationService.getConfig(ConfigKey.Advanced.ShowTimezone)) {
++			parts.push(' ' + formatGmtOffset(now));
++		}
++
++		parts.push('.');
++	}
++
++	return parts.join('');
++}
++
++/**
++ * Format the local UTC offset of `d` as `GMT±H` or `GMT±H:MM` (e.g. `GMT+2`, `GMT-4`,
++ * `GMT+5:30`, `GMT+0` for UTC).
++ *
++ * Why we don't use `Intl.DateTimeFormat({ timeZoneName: 'shortOffset' })`:
++ * the ECMA-402 spec leaves the exact string up to the implementation. Different
++ * ICU versions bundled with V8/Node disagree on the UTC case in particular —
++ * Node 22.21 returns `'GMT'`, Node 22.22 returns `'GMT+0'`, browser engines
++ * differ from each other and from Node. That's spec-compliant but produces
++ * cross-platform-unstable strings, which breaks tests and any consumer doing
++ * string equality.
++ *
++ * `Date.prototype.getTimezoneOffset()` is V8-core, has been stable since Node 0.x,
++ * and is independent of ICU. Format it ourselves and we get the same output on
++ * every supported runtime. The sign is inverted (the API returns minutes WEST
++ * of UTC, while users expect minutes EAST), so we negate.
++ */
++function formatGmtOffset(d: Date): string {
++	const minutesEastOfUtc = -d.getTimezoneOffset();
++	const sign = minutesEastOfUtc >= 0 ? '+' : '-';
++	const abs = Math.abs(minutesEastOfUtc);
++	const hours = Math.floor(abs / 60);
++	const minutes = abs % 60;
++	return minutes === 0
++		? `GMT${sign}${hours}`
++		: `GMT${sign}${hours}:${String(minutes).padStart(2, '0')}`;
++}
+diff --git a/extensions/copilot/src/extension/prompts/common/test/currentDateContext.spec.ts b/extensions/copilot/src/extension/prompts/common/test/currentDateContext.spec.ts
+new file mode 100644
+index 00000000000..859d898a759
+--- /dev/null
++++ b/extensions/copilot/src/extension/prompts/common/test/currentDateContext.spec.ts
+@@ -0,0 +1,181 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
++import { formatCurrentDateContext } from '../currentDateContext';
++import { ConfigKey, IConfigurationService } from '../../../../platform/configuration/common/configurationService';
++
++function createMockConfigService(overrides: { timeFormat?: string; showWeekday?: boolean; showTimezone?: boolean } = {}): IConfigurationService {
++	return {
++		_serviceBrand: undefined,
++		getConfig(key: unknown) {
++			if (key === ConfigKey.Advanced.TimeFormat) { return overrides.timeFormat ?? 'off'; }
++			if (key === ConfigKey.Advanced.ShowWeekday) { return overrides.showWeekday ?? false; }
++			if (key === ConfigKey.Advanced.ShowTimezone) { return overrides.showTimezone ?? false; }
++			return undefined;
++		},
++	} as unknown as IConfigurationService;
++}
++
++describe('formatCurrentDateContext', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'UTC');
++		// Monday, June 15, 2026 14:30:45 UTC
++		vi.setSystemTime(new Date('2026-06-15T14:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('returns date only by default (all settings off)', () => {
++		const result = formatCurrentDateContext(createMockConfigService());
++		expect(result).toBe('The current date is 2026-06-15.');
++	});
++
++	it('includes time in 24h format', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h' }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 14:30:45.');
++	});
++
++	it('includes time in 12h format', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '12h' }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 02:30:45 PM.');
++	});
++
++	it('includes weekday when showWeekday is enabled', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ showWeekday: true }));
++		expect(result).toBe('The current date is Monday, 2026-06-15.');
++	});
++
++	it('includes timezone when both time and showTimezone are enabled', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showTimezone: true }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 14:30:45 GMT+0.');
++	});
++
++	it('does not include timezone when time is off', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ showTimezone: true }));
++		expect(result).toBe('The current date is 2026-06-15.');
++	});
++
++	it('includes all parts when all settings are enabled (24h)', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showWeekday: true, showTimezone: true }));
++		expect(result).toBe('The current date is Monday, 2026-06-15. The current time is 14:30:45 GMT+0.');
++	});
++
++	it('includes all parts when all settings are enabled (12h)', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '12h', showWeekday: true, showTimezone: true }));
++		expect(result).toBe('The current date is Monday, 2026-06-15. The current time is 02:30:45 PM GMT+0.');
++	});
++
++	it('weekday + time without timezone', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showWeekday: true }));
++		expect(result).toBe('The current date is Monday, 2026-06-15. The current time is 14:30:45.');
++	});
++
++	it('treats unknown timeFormat values as 24h', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: 'garbage' as any }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 14:30:45.');
++	});
++});
++
++describe('formatCurrentDateContext (US Eastern timezone)', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'America/New_York');
++		vi.setSystemTime(new Date('2026-06-15T14:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('shows local time and GMT-4 timezone', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showTimezone: true }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 10:30:45 GMT-4.');
++	});
++
++	it('shows all parts in Eastern timezone', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '12h', showWeekday: true, showTimezone: true }));
++		expect(result).toBe('The current date is Monday, 2026-06-15. The current time is 10:30:45 AM GMT-4.');
++	});
++});
++
++describe('formatCurrentDateContext (Tokyo timezone)', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'Asia/Tokyo');
++		vi.setSystemTime(new Date('2026-06-15T14:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('shows local time in Tokyo timezone', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showTimezone: true }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 23:30:45 GMT+9.');
++	});
++});
++
++describe('formatCurrentDateContext (US Pacific winter — PST)', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'America/Los_Angeles');
++		// January = PST (no daylight saving)
++		vi.setSystemTime(new Date('2026-01-15T20:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('shows GMT-8 in LA winter', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showTimezone: true }));
++		expect(result).toBe('The current date is 2026-01-15. The current time is 12:30:45 GMT-8.');
++	});
++});
++
++describe('formatCurrentDateContext (India — non-whole-hour offset)', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'Asia/Kolkata');
++		vi.setSystemTime(new Date('2026-06-15T14:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('shows GMT+5:30 offset', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showTimezone: true }));
++		expect(result).toBe('The current date is 2026-06-15. The current time is 20:00:45 GMT+5:30.');
++	});
++});
++
++describe('formatCurrentDateContext (date rollover — UTC night → Tokyo next day)', () => {
++	beforeEach(() => {
++		vi.useFakeTimers();
++		vi.stubEnv('TZ', 'Asia/Tokyo');
++		// UTC Sunday 23:30 → Tokyo Monday 08:30, date rolls to June 16
++		vi.setSystemTime(new Date('2026-06-15T23:30:45.000Z'));
++	});
++
++	afterEach(() => {
++		vi.useRealTimers();
++		vi.unstubAllEnvs();
++	});
++
++	it('shows correct local date and weekday after rollover', () => {
++		const result = formatCurrentDateContext(createMockConfigService({ timeFormat: '24h', showWeekday: true, showTimezone: true }));
++		expect(result).toBe('The current date is Tuesday, 2026-06-16. The current time is 08:30:45 GMT+9.');
++	});
++});
+diff --git a/extensions/copilot/src/extension/prompts/node/agent/agentPrompt.tsx b/extensions/copilot/src/extension/prompts/node/agent/agentPrompt.tsx
+index ef7f92fedb3..b4021a7b48b 100644
+--- a/extensions/copilot/src/extension/prompts/node/agent/agentPrompt.tsx
++++ b/extensions/copilot/src/extension/prompts/node/agent/agentPrompt.tsx
+@@ -8,6 +8,7 @@ import type { ChatLanguageModelToolReference, ChatRequestEditedFileEvent, Langua
+ import { sessionResourceToId } from '../../../../platform/chat/common/chatDebugFileLoggerService';
+ import { ChatLocation } from '../../../../platform/chat/common/commonTypes';
+ import { ConfigKey, IConfigurationService } from '../../../../platform/configuration/common/configurationService';
++import { formatCurrentDateContext } from '../../common/currentDateContext';
+ import { ICustomInstructionsService } from '../../../../platform/customInstructions/common/customInstructionsService';
+ import { USE_SKILL_ADHERENCE_PROMPT_SETTING } from '../../../../platform/customInstructions/common/promptTypes';
+ import { CacheType } from '../../../../platform/endpoint/common/endpointTypes';
+@@ -602,17 +603,15 @@ class UserOSPrompt extends PromptElement<BasePromptElementProps> {
+ class CurrentDatePrompt extends PromptElement<BasePromptElementProps> {
+ 	constructor(
+ 		props: BasePromptElementProps,
+-		@IEnvService private readonly envService: IEnvService) {
++		@IEnvService private readonly envService: IEnvService,
++		@IConfigurationService private readonly configurationService: IConfigurationService) {
+ 		super(props);
+ 	}
+ 
+ 	async render(state: void, sizing: PromptSizing) {
+-		// Use the local date in ISO 8601 format (no localized words) so the prompt is not affected by the user's system language (issue #309008)
+-		const now = new Date();
+-		const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+ 		// Only include current date when not running simulations, since if we generate cache entries with the current date, the cache will be invalidated every day
+ 		return (
+-			!this.envService.isSimulation() && <>The current date is {dateStr}.</>
++			!this.envService.isSimulation() && <>{formatCurrentDateContext(this.configurationService)}</>
+ 		);
+ 	}
+ }
+diff --git a/extensions/copilot/src/platform/configuration/common/configurationService.ts b/extensions/copilot/src/platform/configuration/common/configurationService.ts
+index b79933c4434..0e00b3e688c 100644
+--- a/extensions/copilot/src/platform/configuration/common/configurationService.ts
++++ b/extensions/copilot/src/platform/configuration/common/configurationService.ts
+@@ -738,6 +738,9 @@ export namespace ConfigKey {
+ 		export const EditRecordingEnabled = defineAndMigrateSetting('chat.advanced.editRecording.enabled', 'chat.editRecording.enabled', false);
+ 		export const CodeSearchAgentEnabled = defineAndMigrateSetting<boolean | undefined>('chat.advanced.codesearch.agent.enabled', 'chat.codesearch.agent.enabled', true);
+ 		export const AgentTemperature = defineAndMigrateSetting<number | undefined>('chat.advanced.agent.temperature', 'chat.agent.temperature', undefined);
++		export const TimeFormat = defineSetting<'off' | '24h' | '12h'>('chat.advanced.context.timeFormat', ConfigType.Simple, 'off');
++		export const ShowWeekday = defineSetting<boolean>('chat.advanced.context.showWeekday', ConfigType.Simple, false);
++		export const ShowTimezone = defineSetting<boolean>('chat.advanced.context.showTimezone', ConfigType.Simple, false);
+ 		export const EnableUserPreferences = defineAndMigrateSetting<boolean>('chat.advanced.enableUserPreferences', 'chat.enableUserPreferences', false);
+ 		export const SummarizeAgentConversationHistoryThreshold = defineAndMigrateSetting<number | undefined>('chat.advanced.summarizeAgentConversationHistoryThreshold', 'chat.summarizeAgentConversationHistoryThreshold', undefined);
+ 		export const AgentHistorySummarizationMode = defineAndMigrateSetting<string | undefined>('chat.advanced.agentHistorySummarizationMode', 'chat.agentHistorySummarizationMode', undefined);
+
+base-commit: 13fa06a39cabd0b59ca007ffd356d14998b983ff
+-- 
+2.53.0
+

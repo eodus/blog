@@ -10,6 +10,8 @@ tags = ["binary-models", "quantization", "llama.cpp", "vulkan", "research"]
 kind = "technical-report"
 status = "result"
 +++
+<!-- Generated from the private blog backend. Do not edit directly.
+     Source revision: 38f6b859 -->
 # Introduction {.intro-toc-heading}
 
 **Sasha Shlemov**, with **Drinkins, personal AI assistant** ·
@@ -136,7 +138,7 @@ directions are:
     most practical target, but because it opens another part of the
     design space.
 
-## 1. The representation
+# 1. The representation
 
 A conventional dense linear layer computes
 
@@ -214,7 +216,7 @@ linear operator, using two learned binary maps and explicit diagonal
 magnitude channels. It is not merely another way to pack two bits per
 weight.
 
-### 1.1 Bit budget
+## 1.1 Bit budget
 
 The storage budget is transparent. Ignoring byte alignment for the
 moment, the two binary factors require
@@ -272,7 +274,7 @@ matrix-tile widths used by current CPU and GPU hardware. That removes
 padding and tail handling from the main contraction and makes
 specialized kernels substantially cleaner.
 
-### 1.2 What we inherit from DBF
+## 1.2 What we inherit from DBF
 
 We start from the fixed-dimension factorization core described by Boža
 and Macko <a href="#ref-boza2026dbf">[3]</a> and implemented in their public
@@ -326,7 +328,7 @@ DBF is therefore the foundation of this implementation, not the final
 algorithm for every rank and tensor. The representation may outlive this
 particular optimizer.
 
-## 2. Why implement it in llama.cpp?
+# 2. Why implement it in llama.cpp?
 
 A Python reconstruction answers an important but narrow question: does
 the factorization approximate an individual matrix? We wanted answers
@@ -359,7 +361,7 @@ possibility. A format implemented in llama.cpp can be downloaded,
 benchmarked, compared with existing quantizers, and extended by the
 people who already maintain those backends.
 
-## 3. A real one-bit tensor type
+# 3. A real one-bit tensor type
 
 llama.cpp already has Q1_0, and our first prototype used it as a sign
 carrier. We separated SIGN1 for three reasons. Q1_0 is a quantization
@@ -392,7 +394,7 @@ graph, routed scaler handling, and architecture-specific kernel
 dispatch. Q1_0 can disguise the storage type; it cannot make DBDBD a
 stock model architecture.
 
-## 4. Teaching the model loader DBDBD
+# 4. Teaching the model loader DBDBD
 
 For each routed expert projection, the model may contain five tensors:
 
@@ -459,7 +461,7 @@ that matrix to one vector at a time. The same arithmetic therefore
 belongs to two different kernel regimes: MMQ for many vectors and MMV
 for one.
 
-## 5. Vulkan: where the representation became practical
+# 5. Vulkan: where the representation became practical
 
 Vulkan is the backend we optimized seriously because it is the fastest
 llama.cpp backend for this model and workload on our Strix Halo.
@@ -605,7 +607,7 @@ close, and small changes in work ownership repeatedly reversed
 apparently obvious conclusions. In particular, test several
 row/column/workgroup regimes.
 
-## 6. CPU: a portable baseline
+# 6. CPU: a portable baseline
 
 The CPU path quantizes activations to Q8, applies packed signs during
 the dot product, and uses AVX2 or AVX-512 when available. The AVX-512
@@ -614,7 +616,7 @@ input vectors per call; AVX2 provides the narrower vector path, with a
 scalar implementation as the correctness fallback. It is functional and
 tested, but not the performance focus here.
 
-## 7. CUDA/HIP: a starting point, not a polished backend
+# 7. CUDA/HIP: a starting point, not a polished backend
 
 We wired SIGN1 and routed DBF scalers through llama.cpp’s CUDA-source
 MMV/MMQ implementation and tested that code through HIP on our AMD
@@ -656,7 +658,7 @@ These are hypotheses, not CUDA performance claims. The Vulkan
 implementation establishes the baseline; a native CUDA port has a richer
 synchronization model with which to challenge it.
 
-## 8. Current measurements
+# 8. Current measurements
 
 The final Vulkan comparison uses the faithful DBF weights and the same
 tensor shapes, storage layout, and nominal operation count as the
@@ -725,9 +727,9 @@ wins. Spectral norms use fixed-seed 32-iteration power iteration. The
 full model-level PPL then tests whether those approximation gains
 survive inference.
 
-## 9. Open questions and the next episodes
+# 9. Open questions and the next episodes
 
-### 9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?
+## 9.1 DBF is reported to struggle at larger bit budgets. Can that regime be repaired?
 
 The original method is especially strong at very low budgets. As the
 intermediate dimension grows, the alternating problem becomes
@@ -735,14 +737,14 @@ increasingly overcomplete and difficult to optimize. Is that a
 fundamental limitation of the representation, or a limitation of the
 continuation/projection algorithm?
 
-### 9.2 Can one structural method cover all important model matrices?
+## 9.2 Can one structural method cover all important model matrices?
 
 Routed FFN experts are only part of an LLM. Attention projections,
 shared experts, routers, embeddings, and the language-model head have
 different shapes and sensitivities. Can we move from “binary experts” to
 a model that is genuinely binary in the meaningful weight-storage sense?
 
-### 9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?
+## 9.3 Can DBF acquire discrete activations and become “BitNet” in the literal sense?
 
 Classical binary-network work, including BitNet-style systems, combines
 discrete weights with discrete or highly constrained activations. Our
@@ -754,7 +756,7 @@ rather than a backend-private optimization? Can the complete linear core
 operate on packed bits and integer accumulation while preserving model
 quality?
 
-### 9.4 Which matrix error should we optimize?
+## 9.4 Which matrix error should we optimize?
 
 The practical answer may be: neither ordinary Frobenius nor ordinary
 spectral norm. Inference does not feed the matrix isotropic random
@@ -781,7 +783,7 @@ not which norm has the most attractive interpretation, but which
 objective produces the best deployed model at the same storage and
 runtime budget.
 
-### 9.5 How much evaluation is enough?
+## 9.5 How much evaluation is enough?
 
 This post uses one full WikiText-2 perplexity run as the first
 model-level quality gate. That is enough for a pilot comparison, not a
@@ -807,7 +809,7 @@ The purpose is not to manufacture one aggregate score. It is to find
 whether the representation changes only average language modeling loss
 or damages a particular capability that PPL hides.
 
-### 9.6 Does the result transfer to more interesting models?
+## 9.6 Does the result transfer to more interesting models?
 
 Qwen3.6-35B-A3B is a practical controlled battlefield, not the final
 target. The next useful test is whether the same representation and
@@ -841,7 +843,7 @@ representation that wins only on one convenient Qwen geometry is a
 useful kernel experiment; one that transfers across Qwen, GLM, MiniMax,
 and DeepSeek begins to look like a general post-training binary format.
 
-## 10. Reproducibility
+# 10. Reproducibility
 
 The public release includes:
 
