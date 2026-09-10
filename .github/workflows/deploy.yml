@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy redirects to GitHub Pages
 on:
   push:
     branches: [main]
@@ -6,15 +6,11 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: zola@0.22.1
-      - run: zola build
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./site
